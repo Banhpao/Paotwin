@@ -3,7 +3,9 @@
 Each part runs as its own process, as it would on separate machines, so
 stopping one (the gateway, say) shows on the twin the way a real failure
 would. Their output goes to this console and to ``nhat-ky/``.
-Closing this window or pressing Ctrl+C stops every part.
+Closing this window or pressing Ctrl+C stops every part. On Windows the
+parts also sit in a job object that closes with this process, so they stop
+even when this launcher is ended from outside (Task Manager, a supervisor).
 """
 
 from __future__ import annotations
@@ -25,6 +27,63 @@ PARTS = [  # (name, module, port it must open before the next part starts)
     ("ban-sao", "paotwin.server", ("web", "port")),
     ("gateway", "paotwin.gateway", None),
 ]
+
+
+class _KillOnClose:
+    """Windows job object: every process assigned to it ends when this
+    launcher ends, however it ends. Does nothing on other systems."""
+
+    def __init__(self) -> None:
+        self.handle = None
+        if sys.platform != "win32":
+            return
+        import ctypes
+        from ctypes import wintypes
+
+        class IO_COUNTERS(ctypes.Structure):
+            _fields_ = [(n, ctypes.c_ulonglong) for n in (
+                "ReadOperationCount", "WriteOperationCount", "OtherOperationCount",
+                "ReadTransferCount", "WriteTransferCount", "OtherTransferCount")]
+
+        class BASIC(ctypes.Structure):
+            _fields_ = [("PerProcessUserTimeLimit", ctypes.c_longlong),
+                        ("PerJobUserTimeLimit", ctypes.c_longlong),
+                        ("LimitFlags", wintypes.DWORD),
+                        ("MinimumWorkingSetSize", ctypes.c_size_t),
+                        ("MaximumWorkingSetSize", ctypes.c_size_t),
+                        ("ActiveProcessLimit", wintypes.DWORD),
+                        ("Affinity", ctypes.c_size_t),
+                        ("PriorityClass", wintypes.DWORD),
+                        ("SchedulingClass", wintypes.DWORD)]
+
+        class EXTENDED(ctypes.Structure):
+            _fields_ = [("BasicLimitInformation", BASIC), ("IoInfo", IO_COUNTERS),
+                        ("ProcessMemoryLimit", ctypes.c_size_t),
+                        ("JobMemoryLimit", ctypes.c_size_t),
+                        ("PeakProcessMemoryUsed", ctypes.c_size_t),
+                        ("PeakJobMemoryUsed", ctypes.c_size_t)]
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.CreateJobObjectW.restype = wintypes.HANDLE
+        kernel32.CreateJobObjectW.argtypes = [ctypes.c_void_p, wintypes.LPCWSTR]
+        kernel32.SetInformationJobObject.argtypes = [wintypes.HANDLE, ctypes.c_int,
+                                                     ctypes.c_void_p, wintypes.DWORD]
+        kernel32.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
+        job = kernel32.CreateJobObjectW(None, None)
+        if not job:
+            return
+        info = EXTENDED()
+        info.BasicLimitInformation.LimitFlags = 0x2000  # JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        # 9 = JobObjectExtendedLimitInformation
+        if not kernel32.SetInformationJobObject(job, 9, ctypes.byref(info), ctypes.sizeof(info)):
+            kernel32.CloseHandle(job)
+            return
+        self.kernel32, self.handle = kernel32, job
+
+    def add(self, process: subprocess.Popen) -> bool:
+        if self.handle is None:
+            return False
+        return bool(self.kernel32.AssignProcessToJobObject(self.handle, int(process._handle)))
 
 
 def port_busy(host: str, port: int) -> bool:
@@ -74,6 +133,7 @@ def main(argv: list[str] | None = None) -> int:
     stamp = time.strftime("%Y%m%d-%H%M%S")
     env = dict(os.environ, PYTHONUNBUFFERED="1", PYTHONIOENCODING="utf-8")
     processes: list[tuple[str, subprocess.Popen]] = []
+    job = _KillOnClose()   # kept alive for the launcher's whole life
     try:
         for name, module, wait_for in PARTS:
             log_file = open(common.LOG_DIR / f"{stamp}-{name}.log", "w", encoding="utf-8")
@@ -81,6 +141,7 @@ def main(argv: list[str] | None = None) -> int:
                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                        env=env)
             processes.append((name, process))
+            job.add(process)
             threading.Thread(target=pump, args=(name, process, log_file), daemon=True).start()
             if wait_for is not None:
                 section, key = wait_for
