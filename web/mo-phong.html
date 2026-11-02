@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bảng mô phỏng</title>
+  <style>
+    :root {
+      --paper: #ece9e1; --sheet: #faf8f3; --ink: #3a2f1f; --soft: #6e6250; --rule: #cfc6b4;
+      --on: #3a2f1f; --focus: #1468b3; color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --paper: #211c15; --sheet: #2a241b; --ink: #ece4d4; --soft: #b8ac97; --rule: #4a4033;
+        --on: #ece4d4; --focus: #6fb3f0; color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --paper: #211c15; --sheet: #2a241b; --ink: #ece4d4; --soft: #b8ac97; --rule: #4a4033;
+      --on: #ece4d4; --focus: #6fb3f0; color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--paper); color: var(--ink);
+      font: 15px/1.45 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+    main { max-width: 980px; margin: 0 auto; padding: 18px 16px 40px; }
+    h1 { font-size: 1.35rem; margin: 0 0 4px; }
+    .lead { margin: 0 0 18px; color: var(--soft); max-width: 70ch; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+    section { background: var(--sheet); border: 1px solid var(--rule); border-top: 2px solid var(--ink); padding: 12px 14px; }
+    h2 { font-size: 1.02rem; margin: 0 0 8px; }
+    p.note { margin: 6px 0 0; font-size: 0.85rem; color: var(--soft); }
+    .row { display: grid; grid-template-columns: 86px 1fr; gap: 8px; margin: 10px 0; align-items: center; }
+    .row > span { color: var(--soft); font-size: 0.9rem; }
+    .opts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    button {
+      font: inherit; color: var(--ink); background: transparent; border: 1px solid var(--ink);
+      border-radius: 3px; padding: 5px 10px; cursor: pointer;
+    }
+    button[aria-pressed="true"] { background: var(--on); color: var(--sheet); }
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+    input[type="range"] { flex: 1; min-width: 140px; accent-color: var(--ink); }
+    output { min-width: 48px; text-align: right; font-weight: 600; }
+    table { border-collapse: collapse; width: 100%; margin-top: 6px; font-size: 0.92rem; }
+    td { padding: 3px 0; border-top: 1px solid var(--rule); }
+    td:last-child { text-align: right; font-weight: 600; }
+    .lamps { display: flex; gap: 8px; margin-top: 6px; }
+    .lamp { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--ink); opacity: 0.25; }
+    .lamp.on { opacity: 1; }
+    .lamp.xanh { background: #29b85c; } .lamp.vang { background: #f9c21a; } .lamp.do { background: #e5291f; }
+    .twin-link { margin: -6px 0 18px; }
+    .twin-link a {
+      display: inline-block; padding: 6px 12px; border-radius: 3px; font-weight: 600;
+      background: var(--on); color: var(--sheet); text-decoration: none;
+    }
+    .err { color: #b3261e; font-weight: 600; min-height: 1.4em; margin: 10px 0 0; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Bảng mô phỏng</h1>
+  <p class="lead">Trang này tạo sự cố cho thiết bị ảo và đường mạng ảo, để xem bản sao 3D phản ứng thế nào. Nó chỉ đổi bộ mô phỏng; bản sao 3D không có cách nào ghi xuống thiết bị.</p>
+  <p class="twin-link"><a id="twin-link" href="#" target="paotwin-ban-sao">Mở bản sao 3D</a> ở thẻ bên cạnh, rồi đặt hai trang cạnh nhau để thấy vùng đổi màu khi bấm ở đây.</p>
+
+  <div class="grid">
+    <section aria-labelledby="h-motor">
+      <h2 id="h-motor">Động cơ ảo (3 pha)</h2>
+      <div class="row"><span>Trạng thái</span><div class="opts">
+        <button type="button" data-set='{"chay":true}' data-key="chay" data-val="true">Chạy</button>
+        <button type="button" data-set='{"chay":false}' data-key="chay" data-val="false">Dừng</button></div>
+      </div>
+      <div class="row"><span>Tải</span><div class="opts">
+        <input type="range" id="load" min="0" max="150" step="5" aria-label="Tải động cơ, phần trăm định mức">
+        <output id="load-out" for="load"></output></div>
+      </div>
+      <div class="row"><span>Mất pha</span><div class="opts">
+        <button type="button" data-set='{"mat_pha":null}' data-key="mat_pha" data-val="null">Không</button>
+        <button type="button" data-set='{"mat_pha":"a"}' data-key="mat_pha" data-val="a">Pha A</button>
+        <button type="button" data-set='{"mat_pha":"b"}' data-key="mat_pha" data-val="b">Pha B</button>
+        <button type="button" data-set='{"mat_pha":"c"}' data-key="mat_pha" data-val="c">Pha C</button></div>
+      </div>
+      <div class="row"><span>Cáp Modbus</span><div class="opts">
+        <button type="button" data-set='{"rut_cap":false}' data-key="rut_cap" data-val="false">Đang cắm</button>
+        <button type="button" data-set='{"rut_cap":true}' data-key="rut_cap" data-val="true">Rút cáp</button></div>
+      </div>
+      <table aria-label="Dòng điện hiện tại"><tbody id="currents"></tbody></table>
+      <p class="note">Định mức 10 A là con số bộ mô phỏng tự đặt, không phải của động cơ thật nào. Rút cáp làm cả động cơ và đèn tháp ngừng trả lời Modbus.</p>
+    </section>
+
+    <section aria-labelledby="h-light">
+      <h2 id="h-light">Đèn tháp ảo</h2>
+      <div class="row"><span>Chế độ</span><div class="opts">
+        <button type="button" data-set='{"den_che_do":"tu_dong"}' data-key="den_che_do" data-val="tu_dong">Theo động cơ</button>
+        <button type="button" data-set='{"den_che_do":"chay"}' data-key="den_che_do" data-val="chay">Chạy</button>
+        <button type="button" data-set='{"den_che_do":"cho"}' data-key="den_che_do" data-val="cho">Chờ</button>
+        <button type="button" data-set='{"den_che_do":"loi"}' data-key="den_che_do" data-val="loi">Lỗi</button>
+        <button type="button" data-set='{"den_che_do":"tat"}' data-key="den_che_do" data-val="tat">Tắt</button></div>
+      </div>
+      <div class="lamps" aria-label="Đèn đang sáng" id="lamps">
+        <span class="lamp xanh" title="Chạy"></span><span class="lamp vang" title="Chờ"></span><span class="lamp do" title="Lỗi"></span>
+      </div>
+      <p class="note">"Theo động cơ": xanh khi chạy, vàng khi dừng, đỏ khi mất pha (như rơ-le bảo vệ ngắt).</p>
+    </section>
+
+    <section aria-labelledby="h-net">
+      <h2 id="h-net">Đường mạng giữa gateway và broker</h2>
+      <div class="row"><span>Đường mạng</span><div class="opts">
+        <button type="button" data-set='{"mang":"tot"}' data-key="mang" data-val="tot">Bình thường</button>
+        <button type="button" data-set='{"mang":"cat"}' data-key="mang" data-val="cat">Cắt mạng</button>
+        <button type="button" data-set='{"mang":"treo"}' data-key="mang" data-val="treo">Mạng treo</button>
+        <button type="button" data-set='{"mang":"cham"}' data-key="mang" data-val="cham">Chậm 8 s</button></div>
+      </div>
+      <p class="note">Cắt mạng: kết nối đứt hẳn, broker phát Last Will của gateway ngay (giống lúc đổi mật khẩu Wi-Fi ở PoC M64). Mạng treo: kết nối không đứt nhưng không có gì đi qua, bản sao chỉ biết nhờ hết thời gian chờ (dữ liệu cũ sau khoảng 6 s, gateway sau 10 đến 15 s). Chậm 8 s: số đo vẫn tới đủ nhưng trễ 8 s; bản sao phải coi chúng là số cũ (mất tín hiệu), không phải số mới.</p>
+    </section>
+  </div>
+  <p class="err" id="err" role="alert"></p>
+</main>
+<script>
+  const err = document.getElementById("err");
+  document.getElementById("twin-link").href =
+    `${location.protocol}//${location.hostname}:__CONG_BAN_SAO__/`;
+  const load = document.getElementById("load");
+  const loadOut = document.getElementById("load-out");
+  let state = null;
+
+  async function send(change) {
+    try {
+      const res = await fetch("api/dat", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(change) });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.loi || res.statusText);
+      err.textContent = "";
+      show(body);
+    } catch (e) {
+      err.textContent = `Không đổi được mô phỏng: ${e.message}`;
+    }
+  }
+
+  function current(key) {
+    const m = state.dong_co, map = { chay: m.chay, mat_pha: m.mat_pha, rut_cap: m.rut_cap,
+      den_che_do: state.den_thap.che_do, mang: state.mang };
+    return String(map[key]);
+  }
+
+  function show(s) {
+    state = s;
+    for (const b of document.querySelectorAll("button[data-key]")) {
+      b.setAttribute("aria-pressed", String(current(b.dataset.key) === b.dataset.val));
+    }
+    if (document.activeElement !== load) load.value = s.dong_co.tai_phan_tram;
+    loadOut.textContent = `${Math.round(load.value)} %`;
+    const d = s.dong_co.dong_A;
+    document.getElementById("currents").innerHTML = ["a", "b", "c"].map((p) =>
+      `<tr><td>Pha ${p.toUpperCase()}</td><td>${d[p].toFixed(2).replace(".", ",")} A</td></tr>`).join("");
+    const lamps = document.querySelectorAll("#lamps .lamp");
+    ["xanh", "vang", "do"].forEach((k, i) => lamps[i].classList.toggle("on", s.den_thap.den[k]));
+  }
+
+  for (const b of document.querySelectorAll("button[data-set]")) {
+    b.addEventListener("click", () => send(JSON.parse(b.dataset.set)));
+  }
+  load.addEventListener("input", () => { loadOut.textContent = `${load.value} %`; });
+  load.addEventListener("change", () => send({ tai_phan_tram: Number(load.value) }));
+
+  async function poll() {
+    try {
+      const res = await fetch("api/trang-thai", { cache: "no-store" });
+      show(await res.json());
+      if (err.textContent.startsWith("Mất")) err.textContent = "";
+    } catch (e) {
+      err.textContent = "Mất kết nối với bộ mô phỏng. Kiểm tra cửa sổ đang chạy demo.";
+    }
+  }
+  poll();
+  setInterval(poll, 1000);
+</script>
+</body>
+</html>

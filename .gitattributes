@@ -1,0 +1,16 @@
+# Kieu xuong dong cua tung loai tep, giu dung nhu tren dia (Windows va may khac nhu nhau).
+*.py   text eol=lf
+*.js   text eol=lf
+*.html text eol=lf
+*.css  text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+*.txt  text eol=lf
+.gitignore     text eol=lf
+.gitattributes text eol=lf
+*.cmd  text eol=crlf
+# Ban ve giu nguyen tung byte
+*.dxf  -text
+*.step -text
+*.stp  -text
+*.stl  -text

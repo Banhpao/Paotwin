@@ -1,0 +1,1486 @@
+  0
+SECTION
+  2
+HEADER
+  9
+$ACADVER
+  1
+AC1009
+  9
+$INSUNITS
+ 70
+4
+  0
+ENDSEC
+  0
+SECTION
+  2
+ENTITIES
+  0
+POLYLINE
+  8
+KHUNG-NEN
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+-16.0
+ 39
+16
+ 70
+1
+  0
+VERTEX
+  8
+KHUNG-NEN
+ 10
+-540.0
+ 20
+-300.0
+ 30
+-16.0
+  0
+VERTEX
+  8
+KHUNG-NEN
+ 10
+540.0
+ 20
+-300.0
+ 30
+-16.0
+  0
+VERTEX
+  8
+KHUNG-NEN
+ 10
+540.0
+ 20
+340.0
+ 30
+-16.0
+  0
+VERTEX
+  8
+KHUNG-NEN
+ 10
+-540.0
+ 20
+340.0
+ 30
+-16.0
+  0
+SEQEND
+  8
+KHUNG-NEN
+  0
+POLYLINE
+  8
+KHUNG-VO
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+ 39
+20
+ 70
+1
+  0
+VERTEX
+  8
+KHUNG-VO
+ 10
+-178.0
+ 20
+-122.5
+ 30
+0.0
+  0
+VERTEX
+  8
+KHUNG-VO
+ 10
+178.0
+ 20
+-122.5
+ 30
+0.0
+  0
+VERTEX
+  8
+KHUNG-VO
+ 10
+178.0
+ 20
+122.5
+ 30
+0.0
+  0
+VERTEX
+  8
+KHUNG-VO
+ 10
+-178.0
+ 20
+122.5
+ 30
+0.0
+  0
+SEQEND
+  8
+KHUNG-VO
+  0
+POLYLINE
+  8
+KHUNG-VO
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+20.0
+ 39
+1.2
+ 70
+1
+  0
+VERTEX
+  8
+KHUNG-VO
+ 10
+-145.0
+ 20
+-62.0
+ 30
+20.0
+  0
+VERTEX
+  8
+KHUNG-VO
+ 10
+145.0
+ 20
+-62.0
+ 30
+20.0
+  0
+VERTEX
+  8
+KHUNG-VO
+ 10
+145.0
+ 20
+46.0
+ 30
+20.0
+  0
+VERTEX
+  8
+KHUNG-VO
+ 10
+-145.0
+ 20
+46.0
+ 30
+20.0
+  0
+SEQEND
+  8
+KHUNG-VO
+  0
+POLYLINE
+  8
+KHUNG-VO
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+16.2
+ 39
+225
+ 70
+1
+  0
+VERTEX
+  8
+KHUNG-VO
+ 10
+-178.0
+ 20
+148.1
+ 30
+16.2
+  0
+VERTEX
+  8
+KHUNG-VO
+ 10
+178.0
+ 20
+148.1
+ 30
+16.2
+  0
+VERTEX
+  8
+KHUNG-VO
+ 10
+178.0
+ 20
+155.1
+ 30
+16.2
+  0
+VERTEX
+  8
+KHUNG-VO
+ 10
+-178.0
+ 20
+155.1
+ 30
+16.2
+  0
+SEQEND
+  8
+KHUNG-VO
+  0
+POLYLINE
+  8
+KHUNG-TRONG
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+4.0
+ 39
+2
+ 70
+1
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+-150.0
+ 20
+-45.0
+ 30
+4.0
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+150.0
+ 20
+-45.0
+ 30
+4.0
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+150.0
+ 20
+105.0
+ 30
+4.0
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+-150.0
+ 20
+105.0
+ 30
+4.0
+  0
+SEQEND
+  8
+KHUNG-TRONG
+  0
+POLYLINE
+  8
+KHUNG-TRONG
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+13.0
+ 39
+3
+ 70
+1
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+-115.0
+ 20
+78.0
+ 30
+13.0
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+115.0
+ 20
+78.0
+ 30
+13.0
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+115.0
+ 20
+86.0
+ 30
+13.0
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+-115.0
+ 20
+86.0
+ 30
+13.0
+  0
+SEQEND
+  8
+KHUNG-TRONG
+  0
+POLYLINE
+  8
+KHUNG-TRONG
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+3.0
+ 39
+4
+ 70
+1
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+178.0
+ 20
+-42.0
+ 30
+3.0
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+264.0
+ 20
+-42.0
+ 30
+3.0
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+264.0
+ 20
+-38.0
+ 30
+3.0
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+178.0
+ 20
+-38.0
+ 30
+3.0
+  0
+SEQEND
+  8
+KHUNG-TRONG
+  0
+POLYLINE
+  8
+KHUNG-TRONG
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+ 39
+10
+ 70
+1
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+-415.0
+ 20
+-122.0
+ 30
+0.0
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+-265.0
+ 20
+-122.0
+ 30
+0.0
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+-265.0
+ 20
+-18.0
+ 30
+0.0
+  0
+VERTEX
+  8
+KHUNG-TRONG
+ 10
+-415.0
+ 20
+-18.0
+ 30
+0.0
+  0
+SEQEND
+  8
+KHUNG-TRONG
+  0
+CIRCLE
+  8
+KHUNG-TRONG
+ 10
+-190
+ 20
+230
+ 30
+0.0
+ 40
+8
+ 39
+128
+  0
+CIRCLE
+  8
+KHUNG-TRONG
+ 10
+-190
+ 20
+230
+ 30
+0.0
+ 40
+28
+ 39
+10
+  0
+CIRCLE
+  8
+KHUNG-TRONG
+ 10
+-190
+ 20
+230
+ 30
+223.0
+ 40
+22
+ 39
+6
+  0
+POLYLINE
+  8
+VUNG-GPU
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+7.0
+ 39
+6
+ 70
+1
+  0
+VERTEX
+  8
+VUNG-GPU
+ 10
+19.0
+ 20
+38.0
+ 30
+7.0
+  0
+VERTEX
+  8
+VUNG-GPU
+ 10
+71.0
+ 20
+38.0
+ 30
+7.0
+  0
+VERTEX
+  8
+VUNG-GPU
+ 10
+71.0
+ 20
+86.0
+ 30
+7.0
+  0
+VERTEX
+  8
+VUNG-GPU
+ 10
+19.0
+ 20
+86.0
+ 30
+7.0
+  0
+SEQEND
+  8
+VUNG-GPU
+  0
+POLYLINE
+  8
+VUNG-CPU
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+7.0
+ 39
+6
+ 70
+1
+  0
+VERTEX
+  8
+VUNG-CPU
+ 10
+-60.0
+ 20
+42.0
+ 30
+7.0
+  0
+VERTEX
+  8
+VUNG-CPU
+ 10
+-20.0
+ 20
+42.0
+ 30
+7.0
+  0
+VERTEX
+  8
+VUNG-CPU
+ 10
+-20.0
+ 20
+82.0
+ 30
+7.0
+  0
+VERTEX
+  8
+VUNG-CPU
+ 10
+-60.0
+ 20
+82.0
+ 30
+7.0
+  0
+SEQEND
+  8
+VUNG-CPU
+  0
+POLYLINE
+  8
+VUNG-RAM
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+7.0
+ 39
+4
+ 70
+1
+  0
+VERTEX
+  8
+VUNG-RAM
+ 10
+-34.0
+ 20
+-12.0
+ 30
+7.0
+  0
+VERTEX
+  8
+VUNG-RAM
+ 10
+34.0
+ 20
+-12.0
+ 30
+7.0
+  0
+VERTEX
+  8
+VUNG-RAM
+ 10
+34.0
+ 20
+16.0
+ 30
+7.0
+  0
+VERTEX
+  8
+VUNG-RAM
+ 10
+-34.0
+ 20
+16.0
+ 30
+7.0
+  0
+SEQEND
+  8
+VUNG-RAM
+  0
+POLYLINE
+  8
+VUNG-RAM
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+7.0
+ 39
+4
+ 70
+1
+  0
+VERTEX
+  8
+VUNG-RAM
+ 10
+-34.0
+ 20
+-44.0
+ 30
+7.0
+  0
+VERTEX
+  8
+VUNG-RAM
+ 10
+34.0
+ 20
+-44.0
+ 30
+7.0
+  0
+VERTEX
+  8
+VUNG-RAM
+ 10
+34.0
+ 20
+-16.0
+ 30
+7.0
+  0
+VERTEX
+  8
+VUNG-RAM
+ 10
+-34.0
+ 20
+-16.0
+ 30
+7.0
+  0
+SEQEND
+  8
+VUNG-RAM
+  0
+CIRCLE
+  8
+VUNG-QUAT
+ 10
+-128
+ 20
+88
+ 30
+5.0
+ 40
+34
+ 39
+10
+  0
+CIRCLE
+  8
+VUNG-QUAT
+ 10
+128
+ 20
+88
+ 30
+5.0
+ 40
+34
+ 39
+10
+  0
+POLYLINE
+  8
+VUNG-PIN
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+4.0
+ 39
+10
+ 70
+1
+  0
+VERTEX
+  8
+VUNG-PIN
+ 10
+-145.0
+ 20
+-115.0
+ 30
+4.0
+  0
+VERTEX
+  8
+VUNG-PIN
+ 10
+145.0
+ 20
+-115.0
+ 30
+4.0
+  0
+VERTEX
+  8
+VUNG-PIN
+ 10
+145.0
+ 20
+-53.0
+ 30
+4.0
+  0
+VERTEX
+  8
+VUNG-PIN
+ 10
+-145.0
+ 20
+-53.0
+ 30
+4.0
+  0
+SEQEND
+  8
+VUNG-PIN
+  0
+POLYLINE
+  8
+VUNG-WIFI
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+7.5
+ 39
+3
+ 70
+1
+  0
+VERTEX
+  8
+VUNG-WIFI
+ 10
+101.0
+ 20
+-23.0
+ 30
+7.5
+  0
+VERTEX
+  8
+VUNG-WIFI
+ 10
+123.0
+ 20
+-23.0
+ 30
+7.5
+  0
+VERTEX
+  8
+VUNG-WIFI
+ 10
+123.0
+ 20
+7.0
+ 30
+7.5
+  0
+VERTEX
+  8
+VUNG-WIFI
+ 10
+101.0
+ 20
+7.0
+ 30
+7.5
+  0
+SEQEND
+  8
+VUNG-WIFI
+  0
+POLYLINE
+  8
+VUNG-WIFI
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+224.7
+ 39
+6
+ 70
+1
+  0
+VERTEX
+  8
+VUNG-WIFI
+ 10
+-140.0
+ 20
+173.7
+ 30
+224.7
+  0
+VERTEX
+  8
+VUNG-WIFI
+ 10
+-100.0
+ 20
+173.7
+ 30
+224.7
+  0
+VERTEX
+  8
+VUNG-WIFI
+ 10
+-100.0
+ 20
+182.7
+ 30
+224.7
+  0
+VERTEX
+  8
+VUNG-WIFI
+ 10
+-140.0
+ 20
+182.7
+ 30
+224.7
+  0
+SEQEND
+  8
+VUNG-WIFI
+  0
+POLYLINE
+  8
+VUNG-WIFI
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+224.7
+ 39
+6
+ 70
+1
+  0
+VERTEX
+  8
+VUNG-WIFI
+ 10
+100.0
+ 20
+173.7
+ 30
+224.7
+  0
+VERTEX
+  8
+VUNG-WIFI
+ 10
+140.0
+ 20
+173.7
+ 30
+224.7
+  0
+VERTEX
+  8
+VUNG-WIFI
+ 10
+140.0
+ 20
+182.7
+ 30
+224.7
+  0
+VERTEX
+  8
+VUNG-WIFI
+ 10
+100.0
+ 20
+182.7
+ 30
+224.7
+  0
+SEQEND
+  8
+VUNG-WIFI
+  0
+POLYLINE
+  8
+VUNG-O_DIA
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+ 39
+22
+ 70
+1
+  0
+VERTEX
+  8
+VUNG-O_DIA
+ 10
+264.0
+ 20
+-99.0
+ 30
+0.0
+  0
+VERTEX
+  8
+VUNG-O_DIA
+ 10
+346.0
+ 20
+-99.0
+ 30
+0.0
+  0
+VERTEX
+  8
+VUNG-O_DIA
+ 10
+346.0
+ 20
+19.0
+ 30
+0.0
+  0
+VERTEX
+  8
+VUNG-O_DIA
+ 10
+264.0
+ 20
+19.0
+ 30
+0.0
+  0
+SEQEND
+  8
+VUNG-O_DIA
+  0
+POLYLINE
+  8
+VUNG-GATEWAY
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+ 39
+52
+ 70
+1
+  0
+VERTEX
+  8
+VUNG-GATEWAY
+ 10
+-378.0
+ 20
+138.0
+ 30
+0.0
+  0
+VERTEX
+  8
+VUNG-GATEWAY
+ 10
+-282.0
+ 20
+138.0
+ 30
+0.0
+  0
+VERTEX
+  8
+VUNG-GATEWAY
+ 10
+-282.0
+ 20
+202.0
+ 30
+0.0
+  0
+VERTEX
+  8
+VUNG-GATEWAY
+ 10
+-378.0
+ 20
+202.0
+ 30
+0.0
+  0
+SEQEND
+  8
+VUNG-GATEWAY
+  0
+CIRCLE
+  8
+VUNG-GATEWAY
+ 10
+-300
+ 20
+185
+ 30
+52.0
+ 40
+4
+ 39
+40
+  0
+POLYLINE
+  8
+VUNG-DONG_CO
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+14
+ 39
+116
+ 70
+1
+  0
+VERTEX
+  8
+VUNG-DONG_CO
+ 10
+-425.0
+ 20
+-128
+ 30
+14
+  0
+VERTEX
+  8
+VUNG-DONG_CO
+ 10
+-255.0
+ 20
+-128
+ 30
+14
+  0
+VERTEX
+  8
+VUNG-DONG_CO
+ 10
+-255.0
+ 20
+-12
+ 30
+14
+  0
+VERTEX
+  8
+VUNG-DONG_CO
+ 10
+-425.0
+ 20
+-12
+ 30
+14
+  0
+SEQEND
+  8
+VUNG-DONG_CO
+  0
+POLYLINE
+  8
+VUNG-DONG_CO
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+62
+ 39
+20
+ 70
+1
+  0
+VERTEX
+  8
+VUNG-DONG_CO
+ 10
+-257.0
+ 20
+-80
+ 30
+62
+  0
+VERTEX
+  8
+VUNG-DONG_CO
+ 10
+-227.0
+ 20
+-80
+ 30
+62
+  0
+VERTEX
+  8
+VUNG-DONG_CO
+ 10
+-227.0
+ 20
+-60
+ 30
+62
+  0
+VERTEX
+  8
+VUNG-DONG_CO
+ 10
+-257.0
+ 20
+-60
+ 30
+62
+  0
+SEQEND
+  8
+VUNG-DONG_CO
+  0
+POLYLINE
+  8
+VUNG-DONG_CO
+ 66
+1
+ 10
+0.0
+ 20
+0.0
+ 30
+129.0
+ 39
+22
+ 70
+1
+  0
+VERTEX
+  8
+VUNG-DONG_CO
+ 10
+-370.0
+ 20
+-96.0
+ 30
+129.0
+  0
+VERTEX
+  8
+VUNG-DONG_CO
+ 10
+-310.0
+ 20
+-96.0
+ 30
+129.0
+  0
+VERTEX
+  8
+VUNG-DONG_CO
+ 10
+-310.0
+ 20
+-44.0
+ 30
+129.0
+  0
+VERTEX
+  8
+VUNG-DONG_CO
+ 10
+-370.0
+ 20
+-44.0
+ 30
+129.0
+  0
+SEQEND
+  8
+VUNG-DONG_CO
+  0
+CIRCLE
+  8
+VUNG-DEN_THAP
+ 62
+3
+ 10
+-190
+ 20
+230
+ 30
+129.0
+ 40
+22
+ 39
+30
+  0
+CIRCLE
+  8
+VUNG-DEN_THAP
+ 62
+2
+ 10
+-190
+ 20
+230
+ 30
+161.0
+ 40
+22
+ 39
+30
+  0
+CIRCLE
+  8
+VUNG-DEN_THAP
+ 62
+1
+ 10
+-190
+ 20
+230
+ 30
+193.0
+ 40
+22
+ 39
+30
+  0
+LINE
+  8
+KICH-THUOC
+ 10
+-178
+ 20
+-140
+ 30
+0
+ 11
+178
+ 21
+-140
+ 31
+0
+  0
+TEXT
+  8
+GHI-CHU
+ 10
+-178
+ 20
+-150
+ 30
+0.0
+ 40
+6
+  1
+Kich thuoc mm. Ban ve mau de thu duong di DXF, khong phai ban ve cua hang.
+  0
+TEXT
+  8
+KHUNG-TEN
+ 10
+300
+ 20
+-300
+ 30
+0.0
+ 40
+8
+  1
+SO BAN VE: BT-001
+  0
+TEXT
+  8
+KHUNG-TEN
+ 10
+300
+ 20
+-312
+ 30
+0.0
+ 40
+8
+  1
+REV: A
+  0
+TEXT
+  8
+KHUNG-TEN
+ 10
+300
+ 20
+-324
+ 30
+0.0
+ 40
+8
+  1
+TEN: B\U+00E0n th\U+1EED laptop v\U+00E0 thi\U+1EBFt b\U+1ECB \U+1EA3o
+  0
+ENDSEC
+  0
+EOF

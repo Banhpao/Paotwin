@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bản sao bàn thử</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="bar">
+    <div class="overall" id="overall" role="status" aria-live="polite">
+      <span class="chip chip-mat_tin_hieu"><span class="glyph" aria-hidden="true">?</span>Đang kết nối</span>
+    </div>
+    <ul class="counts" id="counts" aria-label="Số vùng theo trạng thái"></ul>
+    <div class="links" id="links"></div>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <main class="layout">
+    <section class="sheet" aria-label="Mô hình 3D bàn thử">
+      <canvas id="view" aria-label="Mô hình 3D. Kéo để xoay, cuộn hoặc chụm hai ngón để phóng to, chạm vào một bộ phận để xem chi tiết."></canvas>
+      <div class="labels" id="labels"></div>
+      <div class="tools">
+        <button type="button" id="xray" aria-pressed="true">Nhìn xuyên vỏ</button>
+        <button type="button" id="names" aria-pressed="false">Hiện tên mọi vùng</button>
+        <button type="button" id="home">Góc nhìn ban đầu</button>
+        <a id="sim-link" class="tool-link" target="paotwin-mo-phong" hidden>Mở bảng tạo sự cố</a>
+      </div>
+      <aside class="title-block" id="title-block" aria-label="Khung tên bản vẽ">
+        <div class="tb-name" id="tb-name">Bàn thử</div>
+        <dl>
+          <div><dt>Mức bản vẽ</dt><dd id="tb-level">Tham khảo</dd></div>
+          <div><dt>Đơn vị</dt><dd>mm</dd></div>
+          <div><dt>Ghi chú</dt><dd id="tb-note"></dd></div>
+        </dl>
+      </aside>
+      <ul class="legend" aria-label="Chú giải màu">
+        <li><span class="sw sw-loi"></span>Lỗi</li>
+        <li><span class="sw sw-mat_tin_hieu"></span>Mất tín hiệu</li>
+        <li><span class="sw sw-canh_bao"></span>Cảnh báo</li>
+        <li><span class="sw sw-binh_thuong"></span>Bình thường (màu gốc)</li>
+        <li><span class="sw sw-chua_co"></span>Chưa có cảm biến</li>
+      </ul>
+    </section>
+
+    <section class="side">
+      <div class="panel" id="machine-panel" hidden>
+        <h2>Máy</h2>
+        <div id="machines"></div>
+      </div>
+      <div class="panel">
+        <h2>Cần xem</h2>
+        <ol class="attention" id="attention"></ol>
+      </div>
+      <div class="panel" id="detail-panel">
+        <h2 id="detail-title">Chi tiết</h2>
+        <div id="detail"><p class="empty">Chạm vào một bộ phận trên mô hình, hoặc một dòng trong danh sách trên, để xem từng tín hiệu.</p></div>
+        <div id="charts" class="charts"></div>
+      </div>
+      <div class="panel">
+        <h2>Thay đổi gần đây</h2>
+        <ol class="events" id="events"></ol>
+      </div>
+      <p class="measure" id="measure"></p>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

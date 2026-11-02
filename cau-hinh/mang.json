@@ -1,0 +1,10 @@
+{
+  "ghi_chu": "Mọi cổng chỉ mở trên 127.0.0.1 (chỉ máy này thấy). Muốn xem trên máy khác trong phòng: đổi web.host thành 0.0.0.0, xem README.",
+  "broker": {"host": "127.0.0.1", "port": 1884},
+  "duong_mang_ao": {"host": "127.0.0.1", "port": 1885},
+  "modbus": {"host": "127.0.0.1", "port": 5021, "don_vi_dong_co": 1, "don_vi_den_thap": 2},
+  "web": {"host": "127.0.0.1", "port": 8791},
+  "mo_phong_web": {"host": "127.0.0.1", "port": 8792},
+  "chu_ky_gui_s": 2,
+  "gateway_keepalive_s": 10
+}

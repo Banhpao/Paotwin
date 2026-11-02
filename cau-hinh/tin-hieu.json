@@ -1,0 +1,189 @@
+{
+  "phien_ban": 1,
+  "ghi_chu": "Ngưỡng có nguon = demo là số tạm cho bản demo, CHƯA DUYỆT, không dùng cho máy thật. Ngưỡng có nguon = thiet_bi lấy từ chính thiết bị báo ra.",
+  "mat_tin_hieu_sau_s": 6,
+  "ghi_chu_mat_tin_hieu": "Giả định demo: 3 lần chu kỳ gửi 2 s của gateway. Chưa duyệt. Tính theo cả lúc nhận lẫn lúc đo, nên số đo đến trễ cũng bị coi là mất tín hiệu.",
+  "may": [
+    {
+      "id": "may_ao",
+      "ten": "Máy ảo",
+      "vung": ["dong_co", "den_thap"],
+      "den": "den_thap/trang_thai",
+      "dong": ["dong_co/pha_a", "dong_co/pha_b", "dong_co/pha_c"],
+      "dong_chay_tu": 0.5,
+      "ghi_chu": "Trạng thái máy theo bộ từ của PoC M64, lấy từ đèn tháp. Mất tín hiệu đèn thì ghi 'Không rõ: tắt máy hoặc mất tín hiệu', vì khi gateway lấy điện từ tủ máy hai việc này trông giống hệt nhau. Chưa chia theo ca vì chưa có giờ ca."
+    }
+  ],
+  "tin_hieu": [
+    {
+      "id": "gateway/ket_noi",
+      "ten": "Kết nối gateway",
+      "vung": "gateway",
+      "kieu": "ket_noi"
+    },
+    {
+      "id": "laptop/gpu_nhiet_do",
+      "ten": "Nhiệt độ GPU",
+      "don_vi": "°C",
+      "vung": "gpu",
+      "kieu": "so",
+      "so_le": 0,
+      "nguong": {
+        "nguon": "thiet_bi",
+        "huong": "tren",
+        "canh_bao_tu": "max_operating",
+        "loi_tu": "slowdown",
+        "giai_thich": "Lỗi từ 'GPU Slowdown Temp' (card tự giảm xung), cảnh báo từ 'GPU Max Operating Temp' nếu mức này thấp hơn; cả hai do chính card báo qua nvidia-smi -q -d TEMPERATURE."
+      }
+    },
+    {
+      "id": "laptop/gpu_tai",
+      "ten": "Tải GPU",
+      "don_vi": "%",
+      "vung": "gpu",
+      "kieu": "so",
+      "so_le": 0,
+      "nguong": {"nguon": "demo", "huong": "tren", "canh_bao": 90, "loi": 99}
+    },
+    {
+      "id": "laptop/gpu_vram",
+      "ten": "VRAM đang dùng",
+      "don_vi": "%",
+      "vung": "gpu",
+      "kieu": "so",
+      "so_le": 0,
+      "nguong": {"nguon": "demo", "huong": "tren", "canh_bao": 85, "loi": 95}
+    },
+    {
+      "id": "laptop/gpu_cong_suat",
+      "ten": "Công suất GPU",
+      "don_vi": "W",
+      "vung": "gpu",
+      "kieu": "so",
+      "so_le": 1
+    },
+    {
+      "id": "laptop/cpu_tai",
+      "ten": "Tải CPU",
+      "don_vi": "%",
+      "vung": "cpu",
+      "kieu": "so",
+      "so_le": 0,
+      "nguong": {"nguon": "demo", "huong": "tren", "canh_bao": 85, "loi": 97}
+    },
+    {
+      "id": "laptop/cpu_nhiet_do",
+      "ten": "Nhiệt độ CPU",
+      "vung": "cpu",
+      "kieu": "chua_co",
+      "ly_do": "Windows không cho đọc nhiệt độ CPU nếu không cài driver quyền quản trị."
+    },
+    {
+      "id": "laptop/ram_dung",
+      "ten": "RAM đang dùng",
+      "don_vi": "%",
+      "vung": "ram",
+      "kieu": "so",
+      "so_le": 0,
+      "nguong": {"nguon": "demo", "huong": "tren", "canh_bao": 85, "loi": 95}
+    },
+    {
+      "id": "laptop/o_dia_trong",
+      "ten": "Dung lượng trống ổ dự án",
+      "don_vi": "%",
+      "vung": "o_dia",
+      "kieu": "so",
+      "so_le": 1,
+      "nguong": {"nguon": "demo", "huong": "duoi", "canh_bao": 15, "loi": 5}
+    },
+    {
+      "id": "laptop/pin_muc",
+      "ten": "Mức pin",
+      "don_vi": "%",
+      "vung": "pin",
+      "kieu": "so",
+      "so_le": 0,
+      "nguong": {"nguon": "demo", "huong": "duoi", "canh_bao": 20, "loi": 10}
+    },
+    {
+      "id": "laptop/cam_sac",
+      "ten": "Nguồn điện",
+      "vung": "pin",
+      "kieu": "liet_ke",
+      "liet_ke": {
+        "co": {"nhan": "Đang cắm sạc", "trang_thai": "binh_thuong"},
+        "khong": {"nhan": "Đang chạy pin", "trang_thai": "binh_thuong"}
+      }
+    },
+    {
+      "id": "laptop/wifi_song",
+      "ten": "Sóng Wi-Fi",
+      "don_vi": "%",
+      "vung": "wifi",
+      "kieu": "so",
+      "so_le": 0,
+      "nguong": {"nguon": "demo", "huong": "duoi", "canh_bao": 40, "loi": 20}
+    },
+    {
+      "id": "laptop/quat_toc_do",
+      "ten": "Tốc độ quạt",
+      "vung": "quat",
+      "kieu": "chua_co",
+      "ly_do": "Laptop này không báo tốc độ quạt ra Windows."
+    },
+    {
+      "id": "dong_co/pha_a",
+      "ten": "Dòng pha A",
+      "don_vi": "A",
+      "vung": "dong_co",
+      "kieu": "so",
+      "so_le": 2,
+      "nguong": {"nguon": "demo", "huong": "tren", "canh_bao": 10.5, "loi": 12.0,
+                 "giai_thich": "Động cơ ảo, định mức 10 A do chính bộ mô phỏng đặt."}
+    },
+    {
+      "id": "dong_co/pha_b",
+      "ten": "Dòng pha B",
+      "don_vi": "A",
+      "vung": "dong_co",
+      "kieu": "so",
+      "so_le": 2,
+      "nguong": {"nguon": "demo", "huong": "tren", "canh_bao": 10.5, "loi": 12.0,
+                 "giai_thich": "Động cơ ảo, định mức 10 A do chính bộ mô phỏng đặt."}
+    },
+    {
+      "id": "dong_co/pha_c",
+      "ten": "Dòng pha C",
+      "don_vi": "A",
+      "vung": "dong_co",
+      "kieu": "so",
+      "so_le": 2,
+      "nguong": {"nguon": "demo", "huong": "tren", "canh_bao": 10.5, "loi": 12.0,
+                 "giai_thich": "Động cơ ảo, định mức 10 A do chính bộ mô phỏng đặt."}
+    },
+    {
+      "id": "dong_co/lech_pha",
+      "ten": "Lệch dòng giữa các pha",
+      "don_vi": "%",
+      "vung": "dong_co",
+      "kieu": "lech_pha",
+      "tu": ["dong_co/pha_a", "dong_co/pha_b", "dong_co/pha_c"],
+      "dang_dung_duoi": 0.5,
+      "so_le": 1,
+      "nguong": {"nguon": "demo", "huong": "tren", "canh_bao": 10, "loi": 20,
+                 "giai_thich": "Lệch lớn nhất so với trung bình ba pha. Không tính khi dòng trung bình dưới 0,5 A (động cơ dừng)."}
+    },
+    {
+      "id": "den_thap/trang_thai",
+      "ten": "Đèn tháp",
+      "vung": "den_thap",
+      "kieu": "liet_ke",
+      "liet_ke": {
+        "chay": {"nhan": "Chạy (xanh)", "trang_thai": "binh_thuong"},
+        "cho": {"nhan": "Chờ (vàng)", "trang_thai": "binh_thuong"},
+        "loi": {"nhan": "Máy báo lỗi (đỏ)", "trang_thai": "loi"},
+        "tat": {"nhan": "Tắt (không đèn nào sáng)", "trang_thai": "binh_thuong"}
+      }
+    }
+  ]
+}

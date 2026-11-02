@@ -1,0 +1,153 @@
+{
+  "phien_ban": 1,
+  "ten": "Bàn thử: laptop và thiết bị ảo",
+  "trang_thai_ban_ve": "tham_khao",
+  "ghi_chu_kiem_tra": "Việc cần kiểm tra là hướng dẫn mẫu cho bản demo, chưa được tổ bảo trì duyệt.",
+  "ghi_chu": "Mô hình khối minh hoạ, đơn vị mm. Vị trí linh kiện bên trong laptop là ước lượng, chưa đo theo máy thật (bản vẽ mức Tham khảo, chưa Xác minh).",
+  "vung": [
+    {
+      "id": "gpu",
+      "ten": "GPU (RTX 3050 Laptop)",
+      "mo_ta": "Card đồ hoạ trên bo mạch, cạnh CPU, dưới ống tản nhiệt.",
+      "kiem_tra": [
+        "Mở Task Manager, thẻ Performance, mục GPU: xem chương trình nào đang dùng GPU.",
+        "Kiểm tra khe hút gió ở đáy và khe thoát gió phía sau không bị che hay bám bụi.",
+        "Nếu máy đang chạy pin: cắm sạc và chọn chế độ hiệu năng cao, vì GPU bị giới hạn khi chạy pin."
+      ],
+      "khoi": [
+        {"hinh": "hop", "tam": [45, 10, -62], "kich_thuoc": [52, 6, 48]}
+      ]
+    },
+    {
+      "id": "cpu",
+      "ten": "CPU",
+      "mo_ta": "Bộ xử lý trên bo mạch, phía sau bàn phím.",
+      "kiem_tra": [
+        "Mở Task Manager, sắp theo cột CPU để tìm chương trình đang chiếm.",
+        "CPU và GPU dùng chung ống tản nhiệt: kiểm tra khe gió như với GPU."
+      ],
+      "khoi": [
+        {"hinh": "hop", "tam": [-40, 10, -62], "kich_thuoc": [40, 6, 40]}
+      ]
+    },
+    {
+      "id": "ram",
+      "ten": "RAM",
+      "mo_ta": "Hai khe RAM giữa bo mạch.",
+      "kiem_tra": [
+        "Mở Task Manager, sắp theo cột Memory, đóng chương trình chiếm nhiều bộ nhớ mà không cần dùng.",
+        "Nếu thường xuyên cao khi làm việc bình thường: ghi lại để cân nhắc nâng RAM."
+      ],
+      "khoi": [
+        {"hinh": "hop", "tam": [0, 9, -2], "kich_thuoc": [68, 4, 28]},
+        {"hinh": "hop", "tam": [0, 9, 30], "kich_thuoc": [68, 4, 28]}
+      ]
+    },
+    {
+      "id": "quat",
+      "ten": "Quạt tản nhiệt",
+      "mo_ta": "Hai quạt ở hai góc sau thân máy.",
+      "kiem_tra": [
+        "Chưa có cảm biến: khi máy chạy nặng, nghe tiếng quạt và cảm nhận luồng gió ở khe thoát phía sau.",
+        "Vệ sinh bụi khe gió theo lịch bảo trì thường."
+      ],
+      "khoi": [
+        {"hinh": "tru", "truc": "y", "tam": [-128, 10, -88], "ban_kinh": 34, "dai": 10},
+        {"hinh": "tru", "truc": "y", "tam": [128, 10, -88], "ban_kinh": 34, "dai": 10}
+      ]
+    },
+    {
+      "id": "pin",
+      "ten": "Pin và nguồn",
+      "mo_ta": "Khối pin nằm phía trước thân máy, dưới chỗ kê tay.",
+      "kiem_tra": [
+        "Kiểm tra dây sạc, đầu cắm và ổ điện.",
+        "Pin tụt nhanh bất thường: xuất báo cáo pin của Windows để xem dung lượng còn lại."
+      ],
+      "khoi": [
+        {"hinh": "hop", "tam": [0, 9, 84], "kich_thuoc": [290, 10, 62]}
+      ]
+    },
+    {
+      "id": "wifi",
+      "ten": "Wi-Fi",
+      "mo_ta": "Card Wi-Fi bên phải bo mạch, ăng-ten ở viền trên màn hình.",
+      "kiem_tra": [
+        "Kiểm tra máy còn kết nối đúng mạng Wi-Fi.",
+        "Mạng vừa đổi mật khẩu thì nhập lại mật khẩu mới trên máy (bài học PoC M64)."
+      ],
+      "khoi": [
+        {"hinh": "hop", "tam": [112, 9, 8], "kich_thuoc": [22, 3, 30]},
+        {"hinh": "hop", "tam": [-120, 227.7, -178.2], "kich_thuoc": [40, 6, 9], "xoay": [-15, 0, 0]},
+        {"hinh": "hop", "tam": [120, 227.7, -178.2], "kich_thuoc": [40, 6, 9], "xoay": [-15, 0, 0]}
+      ]
+    },
+    {
+      "id": "o_dia",
+      "ten": "Ổ dự án (Expansion, cắm ngoài)",
+      "mo_ta": "Ổ cứng gắn ngoài chứa dự án, cắm bên phải laptop.",
+      "kiem_tra": [
+        "Kiểm tra cáp và đèn của ổ cắm ngoài; ổ bị rút ra thì dự án dừng.",
+        "Ổ gần đầy: chuyển tệp không dùng vào thư mục lưu trữ hoặc sang ổ khác, không xoá vội."
+      ],
+      "khoi": [
+        {"hinh": "hop", "tam": [305, 11, 40], "kich_thuoc": [82, 22, 118]}
+      ]
+    },
+    {
+      "id": "gateway",
+      "ten": "Gateway ảo",
+      "mo_ta": "Đọc cảm biến laptop và thiết bị ảo (Modbus), gửi lên broker MQTT.",
+      "kiem_tra": [
+        "Xem cửa sổ đang chạy demo: phần gateway còn chạy không, có báo lỗi gì không.",
+        "Mở bảng tạo sự cố, kiểm tra Đường mạng đang ở Bình thường."
+      ],
+      "khoi": [
+        {"hinh": "hop", "tam": [-330, 26, -170], "kich_thuoc": [96, 52, 64]},
+        {"hinh": "tru", "truc": "y", "tam": [-300, 72, -185], "ban_kinh": 4, "dai": 40}
+      ]
+    },
+    {
+      "id": "dong_co",
+      "ten": "Động cơ ảo (3 pha)",
+      "mo_ta": "Động cơ mô phỏng, đo dòng ba pha qua Modbus TCP như kẹp dòng ở PoC M64.",
+      "kiem_tra": [
+        "Xem dòng từng pha: một pha gần 0 trong khi hai pha kia cao là mất pha. Với máy thật: dừng máy rồi kiểm tra cầu chì, khởi động từ và dây của pha đó.",
+        "Ba pha cùng cao: động cơ quá tải. Với máy thật: kiểm tra tải cơ khí, ổ trục, dây đai.",
+        "Chỉ người có chứng chỉ an toàn điện mới được mở tủ điện."
+      ],
+      "khoi": [
+        {"hinh": "tru", "truc": "x", "tam": [-340, 72, 70], "ban_kinh": 58, "dai": 170},
+        {"hinh": "tru", "truc": "x", "tam": [-242, 72, 70], "ban_kinh": 10, "dai": 30},
+        {"hinh": "hop", "tam": [-340, 140, 70], "kich_thuoc": [60, 22, 52]}
+      ]
+    },
+    {
+      "id": "den_thap",
+      "ten": "Đèn tháp ảo",
+      "mo_ta": "Ba đèn Chạy (xanh), Chờ (vàng), Lỗi (đỏ), đọc dạng đầu vào số.",
+      "kiem_tra": [
+        "Đèn đỏ: xem mã lỗi trên bảng điều khiển của máy và ghi lại trước khi xử lý.",
+        "Đèn và dòng động cơ không khớp nhau: kiểm tra dây tín hiệu từ đèn tới gateway."
+      ],
+      "khoi": [
+        {"hinh": "tru", "truc": "y", "tam": [-190, 144, -230], "ban_kinh": 22, "dai": 30, "den": "xanh"},
+        {"hinh": "tru", "truc": "y", "tam": [-190, 176, -230], "ban_kinh": 22, "dai": 30, "den": "vang"},
+        {"hinh": "tru", "truc": "y", "tam": [-190, 208, -230], "ban_kinh": 22, "dai": 30, "den": "do"}
+      ]
+    }
+  ],
+  "khung": [
+    {"ten": "Mặt bàn", "loai": "nen", "hinh": "hop", "tam": [0, -8, -20], "kich_thuoc": [1080, 16, 640]},
+    {"ten": "Thân laptop", "loai": "vo", "hinh": "hop", "tam": [0, 10, 0], "kich_thuoc": [356, 20, 245]},
+    {"ten": "Bàn phím", "loai": "vo", "hinh": "hop", "tam": [0, 20.6, 8], "kich_thuoc": [290, 1.2, 108]},
+    {"ten": "Màn hình", "loai": "vo", "hinh": "hop", "tam": [0, 128.7, -151.6], "kich_thuoc": [356, 225, 7], "xoay": [-15, 0, 0]},
+    {"ten": "Bo mạch", "loai": "trong", "hinh": "hop", "tam": [0, 5, -30], "kich_thuoc": [300, 2, 150]},
+    {"ten": "Ống tản nhiệt", "loai": "trong", "hinh": "hop", "tam": [0, 14.5, -82], "kich_thuoc": [230, 3, 8]},
+    {"ten": "Cáp ổ ngoài", "loai": "trong", "hinh": "hop", "tam": [221, 5, 40], "kich_thuoc": [86, 4, 4]},
+    {"ten": "Chân động cơ", "loai": "trong", "hinh": "hop", "tam": [-340, 5, 70], "kich_thuoc": [150, 10, 104]},
+    {"ten": "Cột đèn tháp", "loai": "trong", "hinh": "tru", "truc": "y", "tam": [-190, 64, -230], "ban_kinh": 8, "dai": 128},
+    {"ten": "Đế đèn tháp", "loai": "trong", "hinh": "tru", "truc": "y", "tam": [-190, 5, -230], "ban_kinh": 28, "dai": 10},
+    {"ten": "Nắp đèn tháp", "loai": "trong", "hinh": "tru", "truc": "y", "tam": [-190, 226, -230], "ban_kinh": 22, "dai": 6}
+  ]
+}
