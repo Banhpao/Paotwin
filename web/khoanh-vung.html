@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Khoanh vùng</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="khoanh-vung.css">
+</head>
+<body>
+  <header class="bar kv-bar">
+    <div class="kv-title">
+      <h1 id="machine-name">Khoanh vùng</h1>
+      <p id="file-info" class="kv-file">Đang tải bản vẽ…</p>
+    </div>
+    <p id="save-state" class="kv-save" role="status" aria-live="polite"></p>
+    <button type="button" id="save" class="kv-primary" disabled>Lưu</button>
+  </header>
+
+  <div class="banner" id="banner" role="alert" hidden></div>
+
+  <main class="layout kv-layout">
+    <section class="sheet" aria-label="Hình 3D của bản vẽ">
+      <canvas id="view" aria-label="Hình 3D. Kéo để xoay, cuộn để phóng to, bấm vào chi tiết để chọn hoặc bỏ chọn."></canvas>
+      <div class="tools">
+        <button type="button" id="through" aria-pressed="true">Bấm xuyên khung và chi tiết bỏ qua</button>
+        <button type="button" id="look" disabled>Nhìn vào chi tiết đã chọn</button>
+        <button type="button" id="home">Góc nhìn ban đầu</button>
+        <button type="button" id="up-axis" title="Trục nào của tệp STEP là chiều đứng">Trục đứng: Z</button>
+      </div>
+      <p class="kv-picked" id="picked" aria-live="polite"></p>
+    </section>
+
+    <section class="side">
+      <div class="panel">
+        <h2>Gán vào</h2>
+        <p class="kv-note" id="zones-note"></p>
+        <p class="kv-note kv-axis" id="axis-note"></p>
+        <div class="kv-machine" id="machine-edit" hidden>
+          <label for="machine-title">Tên máy</label>
+          <input id="machine-title" type="text" maxlength="120">
+        </div>
+        <ul class="kv-targets" id="zones" aria-label="Vùng của máy"></ul>
+        <ul class="kv-targets kv-special" id="specials" aria-label="Không thuộc vùng nào"></ul>
+        <div class="kv-zone-edit" id="zone-edit" hidden></div>
+        <details class="kv-add" id="add-zone" hidden>
+          <summary>Thêm vùng</summary>
+          <form id="add-form" novalidate>
+            <label for="new-id">Mã vùng</label>
+            <input id="new-id" type="text" maxlength="40" autocomplete="off" spellcheck="false"
+                   aria-describedby="new-id-help" placeholder="vd ic_trai">
+            <p class="kv-help" id="new-id-help">Chữ thường không dấu, số và dấu gạch dưới. Mã dùng để gắn cảm biến sau này.</p>
+            <label for="new-name">Tên vùng</label>
+            <input id="new-name" type="text" maxlength="80" placeholder="vd IC cầu H bên trái">
+            <label for="new-note">Mô tả (không bắt buộc)</label>
+            <textarea id="new-note" rows="2" maxlength="400"></textarea>
+            <p class="kv-error" id="add-error" role="alert"></p>
+            <button type="submit">Thêm vùng</button>
+          </form>
+        </details>
+      </div>
+
+      <div class="panel">
+        <h2>Chi tiết</h2>
+        <div class="kv-actions">
+          <button type="button" id="assign" class="kv-primary" disabled>Gán vào vùng đã chọn</button>
+          <button type="button" id="unassign" disabled>Bỏ gán</button>
+          <button type="button" id="same-name" disabled>Chọn cả chi tiết cùng tên</button>
+          <button type="button" id="clear" disabled>Bỏ chọn</button>
+        </div>
+        <div class="kv-filter">
+          <input id="filter" type="search" placeholder="Lọc theo tên chi tiết" aria-label="Lọc theo tên chi tiết">
+          <label><input type="checkbox" id="only-open"> Chỉ chi tiết chưa gán</label>
+        </div>
+        <ol class="kv-parts" id="parts" aria-label="Danh sách chi tiết"></ol>
+        <p class="kv-note" id="parts-note"></p>
+      </div>
+
+      <div class="panel">
+        <h2>Kiểm tra</h2>
+        <div id="check"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Nhập vào sổ bản vẽ</h2>
+        <p class="kv-note">Nhập thành mức Candidate (chưa đối chiếu với máy thật), dùng đúng các vùng và cách gán đã lưu. Bản sao không tự chuyển sang bản vẽ này.</p>
+        <form id="import-form" class="kv-import" novalidate>
+          <label for="number">Số bản vẽ</label>
+          <input id="number" type="text" maxlength="40" spellcheck="false" placeholder="vd BTS-001">
+          <label for="revision">Revision</label>
+          <input id="revision" type="text" maxlength="10" spellcheck="false" placeholder="vd A">
+          <label for="rights">Quyền dùng bản vẽ</label>
+          <input id="rights" type="text" maxlength="300" placeholder="Nguồn tệp và được dùng vào việc gì">
+          <button type="submit" id="import" disabled>Nhập bản vẽ</button>
+        </form>
+        <div id="import-result" class="kv-result" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="khoanh-vung.js"></script>
+</body>
+</html>

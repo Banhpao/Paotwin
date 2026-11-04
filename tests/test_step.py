@@ -51,6 +51,21 @@ class NamingTest(unittest.TestCase):
     def test_axes(self):
         # CAD Z up, Y away -> twin up = Z, z = -Y.
         self.assertEqual(step.to_twin((1.0, 2.0, 3.0)), [1.0, 3.0, -2.0])
+        # Y up (SolidWorks): the twin's axes are the file's.
+        self.assertEqual(step.to_twin((1.0, 2.0, 3.0), "Y"), [1.0, 2.0, 3.0])
+
+    def test_the_program_that_wrote_a_file(self):
+        folder = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, folder)
+        path = folder / "a.step"
+        path.write_text("ISO-10303-21;\nHEADER;\nFILE_NAME ('A.STEP',\n '2017-07-29T18:13:27',\n"
+                        " ( '' ),\n ( '' ),\n 'SwSTEP 2.0',\n 'SolidWorks 2017',\n '' );\nENDSEC;\n",
+                        encoding="latin-1")
+        self.assertEqual(step.origin_of(path), "SolidWorks 2017")
+        self.assertEqual(step.suggested_up("SolidWorks 2017"), "Y")
+        self.assertIsNone(step.suggested_up("NX 12"))
+        path.write_text("ISO-10303-21;\nHEADER;\nENDSEC;\n", encoding="latin-1")
+        self.assertEqual(step.origin_of(path), "")
 
 
 class AssembleTest(unittest.TestCase):
@@ -93,6 +108,96 @@ class AssembleTest(unittest.TestCase):
             step.MAX_TRIANGLES = old
 
 
+def keyed(names, key, **kw):
+    part = cube(names, **kw)
+    part.key = key
+    return part
+
+
+class ZoneFileTest(unittest.TestCase):
+    """Version 2 zone files, written by the zoning tool (khoanh_vung)."""
+
+    def bench_parts_by_key(self):
+        # Every bench zone covered by position, under supplier names only.
+        parts, chosen = [], {}
+        for i, zone in enumerate(CATALOG["vung"], start=1):
+            parts.append(keyed(["ASSY", "NAUO", "Supplier part"], f"1/{i}"))
+            chosen[f"1/{i}"] = {"vung": zone["id"]}
+        return parts, chosen
+
+    def test_two_parts_with_one_name_go_to_different_zones(self):
+        parts, chosen = self.bench_parts_by_key()
+        model, report = step.assemble(parts, CATALOG, RECORD, {"phien_ban": 2, "chi_tiet": chosen})
+        self.assertEqual(report.other_layers, {})
+        for zone in model["vung"]:
+            self.assertEqual(len(zone["khoi"]), 1, zone["id"])
+            self.assertTrue(zone["khoi"][0]["khoa"].startswith("1/"))
+
+    def test_position_beats_name_beats_naming_rule(self):
+        mapping = step.ZoneMap.of({"phien_ban": 2, "chi_tiet": {"1/1": {"vung": "cpu"}},
+                                   "ten": {"VUNG-GPU-1": {"vung": "ram"}}})
+        self.assertEqual(step.classify(["VUNG-GPU-1"], mapping, "1/1"), ("zone", "cpu"))
+        self.assertEqual(step.classify(["VUNG-GPU-1"], mapping, "1/2"), ("zone", "ram"))
+        self.assertEqual(step.classify(["VUNG-GPU-1"], {}, "1/2"), ("zone", "gpu"))
+
+    def test_frame_skip_and_lamp_by_position(self):
+        parts, chosen = self.bench_parts_by_key()
+        lamps = [i for i, z in enumerate(CATALOG["vung"], start=1) if z["id"] == "den_thap"]
+        chosen[f"1/{lamps[0]}"] = {"vung": "den_thap", "den": "vang"}
+        parts += [keyed(["ASSY", "Base plate"], "2/1", size=100), keyed(["ASSY", "Bolt M8"], "2/2"),
+                  keyed(["ASSY", "Bolt M8"], "2/3")]
+        chosen.update({"2/1": {"khung": "nen"}, "2/2": {"bo_qua": True}, "2/3": {"bo_qua": True}})
+        model, report = step.assemble(parts, CATALOG, RECORD, {"phien_ban": 2, "chi_tiet": chosen})
+        self.assertEqual(report.ignored, {"ASSY / Bolt M8": 2})
+        self.assertEqual(report.other_layers, {})
+        self.assertEqual([f["loai"] for f in model["khung"]], ["nen"])
+        lamp = next(z for z in model["vung"] if z["id"] == "den_thap")["khoi"][0]
+        self.assertEqual(lamp["den"], "vang")
+
+    def test_name_decision_without_lamp_keeps_the_name_ending(self):
+        self.assertEqual(step.lamp_of(["Lamp-DO"], {"Lamp-DO": "den_thap"}), "do")
+
+    def test_a_zone_file_for_another_drawing_is_refused(self):
+        parts, chosen = self.bench_parts_by_key()
+        other = {"phien_ban": 2, "sha256": "khac", "chi_tiet": chosen}
+        with self.assertRaisesRegex(step.StepError, "sha256"):
+            step.assemble(parts, CATALOG, dict(RECORD, sha256="abc"), other)
+        same = dict(other, sha256="abc")
+        step.assemble(parts, CATALOG, dict(RECORD, sha256="abc"), same)
+
+    def test_positions_not_in_the_drawing_are_reported(self):
+        parts, chosen = self.bench_parts_by_key()
+        chosen["9/9"] = {"bo_qua": True}
+        _, report = step.assemble(parts, CATALOG, RECORD, {"phien_ban": 2, "chi_tiet": chosen})
+        self.assertTrue(any("9/9" in line for line in report.skipped))
+
+    def test_the_vertical_axis_comes_from_the_zone_file_or_the_import(self):
+        parts, chosen = self.bench_parts_by_key()
+        y_up = {"phien_ban": 2, "chi_tiet": chosen, "truc_dung": "Y"}
+        model, _ = step.assemble(parts, CATALOG, RECORD, y_up)
+        self.assertEqual(model["ban_ve"]["truc_dung"], "Y")
+        gpu = next(z for z in model["vung"] if z["id"] == "gpu")["khoi"][0]
+        self.assertEqual(gpu["hop_bao"], [0.0, 0.0, 0.0, 10.0, 10.0, 10.0])
+        self.assertEqual(step.assemble(parts, CATALOG, RECORD, dict(y_up, truc_dung=None), "Y")[0]
+                         ["ban_ve"]["truc_dung"], "Y")
+        self.assertEqual(step.assemble(parts, CATALOG, RECORD, dict(y_up, truc_dung=None))[0]
+                         ["ban_ve"]["truc_dung"], "Z")
+        with self.assertRaisesRegex(step.StepError, "trục đứng Y"):
+            step.assemble(parts, CATALOG, RECORD, y_up, "Z")
+        with self.assertRaisesRegex(step.StepError, "truc_dung"):
+            step.ZoneMap.of(dict(y_up, truc_dung="X"))
+
+    def test_bad_decisions_are_refused_with_the_place(self):
+        bad = [{"vung": "Có dấu"}, {"vung": "gpu", "khung": "nen"}, {"vung": "gpu", "den": "tim"},
+               {"khung": "mai"}, {"bo_qua": "co"}, {"vung": "gpu", "mau": 1}, 7]
+        for decision in bad:
+            with self.subTest(decision=decision):
+                with self.assertRaisesRegex(step.StepError, "1/1"):
+                    step.ZoneMap.of({"phien_ban": 2, "chi_tiet": {"1/1": decision}})
+        with self.assertRaisesRegex(step.StepError, "phiên bản"):
+            step.ZoneMap.of({"phien_ban": 3})
+
+
 @unittest.skipUnless(step.occ_available(), f"chưa cài {step.PACKAGE} (CAI-DAT-STEP.cmd)")
 class OpenCascadeTest(unittest.TestCase):
     """Runs on the laptop once CAI-DAT-STEP.cmd has installed the package."""
@@ -128,6 +233,9 @@ class OpenCascadeTest(unittest.TestCase):
         self.assertIn("VUNG-GPU-1", names)
         self.assertIn("VUNG-DEN_THAP-DO", names)
         self.assertIn("KHUNG-NEN", names)
+        # Every part has its own position key, from the one free top shape.
+        self.assertEqual(len({p.key for p in parts}), len(parts))
+        self.assertTrue(all(p.key.startswith("1/") for p in parts), [p.key for p in parts])
         model, report = step.assemble(parts, CATALOG, RECORD)
         self.assertEqual(report.skipped, [])
         # The GPU box comes back where the reference model has it (twin axes).

@@ -46,6 +46,7 @@ class Report:
     skipped: list[str] = field(default_factory=list)
     other_layers: dict[str, int] = field(default_factory=dict)
     unsupported: dict[str, int] = field(default_factory=dict)
+    ignored: dict[str, int] = field(default_factory=dict)   # left out on purpose (zone file)
 
     def skip(self, why: str) -> None:
         self.skipped.append(why)

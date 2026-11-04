@@ -145,6 +145,65 @@ class RegisterTest(unittest.TestCase):
         self.assertEqual(record["id"], "BT-001-B")
         self.assertEqual([r["id"] for r in ban_ve.load(self.root)["bo"]], ["BT-001-A", "BT-001-B"])
 
+    def test_the_same_file_built_another_way_needs_a_new_revision(self):
+        catalog = common.load_json(self.root / "mo-hinh" / "ban-thu.json")
+        ban_ve.import_drawing(SAMPLE, person="An", rights="", root=self.root)
+        other = dict(catalog, ten="Danh mục khác")
+        with self.assertRaisesRegex(SystemExit, "A2"):
+            ban_ve.import_drawing(SAMPLE, person="An", rights="", root=self.root, catalog=other,
+                                  catalog_source="khac.json")
+        record, _, existed = ban_ve.import_drawing(SAMPLE, person="An", rights="", root=self.root,
+                                                   catalog=other, catalog_source="khac.json",
+                                                   revision="A2")
+        self.assertEqual((record["id"], existed), ("BT-001-A2", False))
+
+    def test_built_models_go_to_their_own_folder(self):
+        record, _, _ = ban_ve.import_drawing(SAMPLE, person="An", rights="", root=self.root)
+        self.assertEqual(record["mo_hinh"], "mo-hinh/nhap/BT-001-A.json")
+        self.assertTrue((self.root / "mo-hinh" / "nhap" / "BT-001-A.json").exists())
+
+
+class OtherMachineTest(unittest.TestCase):
+    """A drawing of another machine: its own zone list, and not for this twin."""
+
+    CATALOG = {"phien_ban": 1, "ma": "may-thu", "ten": "Máy thử",
+               "vung": [{"id": "ic_trai", "ten": "IC trái"}, {"id": "tan_nhiet", "ten": "Tản nhiệt"}]}
+
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.root)
+        (self.root / "mo-hinh").mkdir()
+        shutil.copy(common.ROOT / "mo-hinh" / "ban-thu.json", self.root / "mo-hinh")
+        self.drawing = self.root / "M-1.dxf"
+        square = [(0, 0), (10, 0), (10, 10), (0, 10)]
+        self.drawing.write_text(dxf_text(lw("VUNG-IC_TRAI", square), lw("VUNG-TAN_NHIET", square, 10)),
+                                encoding="utf-8")
+
+    def test_built_against_its_own_zones_but_not_used_by_the_bench_twin(self):
+        record, report, _ = ban_ve.import_drawing(
+            self.drawing, person="An", rights="thử", root=self.root, catalog=self.CATALOG,
+            catalog_source="ban-ve/may/may-thu/danh-muc.json", number="M-1", revision="A")
+        self.assertEqual(record["danh_muc"], "ban-ve/may/may-thu/danh-muc.json")
+        model = common.load_json(self.root / record["mo_hinh"])
+        self.assertEqual([z["id"] for z in model["vung"]], ["ic_trai", "tan_nhiet"])
+        with self.assertRaisesRegex(SystemExit, "gpu"):
+            ban_ve.use(record["id"], person="An", root=self.root)
+        self.assertIsNone(ban_ve.load(self.root)["dang_dung"])
+
+    def test_a_zone_list_must_be_usable(self):
+        bad = [{}, {"vung": []}, {"vung": [{"id": "Có dấu", "ten": "x"}]},
+               {"vung": [{"id": "a", "ten": "A"}, {"id": "a", "ten": "B"}]},
+               {"vung": [{"id": "a", "ten": " "}]}]
+        for catalog in bad:
+            with self.subTest(catalog=catalog), self.assertRaises(SystemExit):
+                ban_ve.check_catalog(catalog, "thử")
+
+    def test_machine_ids(self):
+        self.assertEqual(ban_ve.machine_folder("bts7960", self.root).name, "bts7960")
+        for bad in ("", "BTS", "../x", "a b", "x" * 41):
+            with self.subTest(machine=bad), self.assertRaises(SystemExit):
+                ban_ve.machine_folder(bad, self.root)
+
 
 if __name__ == "__main__":
     unittest.main()

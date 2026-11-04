@@ -213,9 +213,17 @@ def make_handler(twin: Twin, web_dir: Path, sim_port: int | None = None):
             self._send(HTTPStatus.OK, body, STATIC[".json"])
 
         def do_POST(self) -> None:  # the twin never writes anywhere
-            # Close afterwards, so an unread request body is never taken for
-            # the next request on a kept-alive connection.
+            # Close afterwards, so a request body is never taken for the next
+            # request on a kept-alive connection; and read it first (up to 1 MB),
+            # because on Windows a socket closed with unread data is reset and
+            # the sender gets "connection aborted" instead of this answer.
             self.close_connection = True
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+            except ValueError:
+                length = 0
+            if 0 < length <= 1024 * 1024:
+                self.rfile.read(length)
             body = "Bản sao chỉ đọc, không nhận lệnh ghi.".encode("utf-8")
             self.send_response(HTTPStatus.METHOD_NOT_ALLOWED)
             self.send_header("Allow", "GET")

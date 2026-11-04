@@ -146,7 +146,13 @@ Sổ bản vẽ (`ban-ve/so-ban-ve.json`) giữ bản sao của mỗi tệp đã
 (`ban-ve/tep/`), mã SHA-256, mức, quyền dùng và **lịch sử không ghi đè**: nhập,
 chọn dùng, xác minh, ai làm, lúc nào. Nhập lại cùng số bản vẽ, cùng revision
 nhưng nội dung khác thì bị từ chối: bản vẽ sửa phải lên revision mới, bản cũ
-vẫn giữ.
+vẫn giữ. Mô hình dựng từ bản vẽ nằm ở `mo-hinh/nhap/`.
+
+**Bản vẽ thật không lên git.** Kho GitHub của dự án công khai, còn bản vẽ máy
+thường là tài liệu mật hoặc có giấy phép riêng. Vì vậy `.gitignore` để ngoài
+git: `ban-ve/tep/`, `ban-ve/so-ban-ve.json`, `ban-ve/may/` và `mo-hinh/nhap/`.
+Chỉ bản vẽ mẫu tự vẽ (`ban-ve/mau/`) lên git. Muốn giữ những thứ này thì sao
+lưu thư mục dự án, không dựa vào git.
 
 Bản vẽ mẫu `BT-001-A.dxf` do Claude dựng từ mô hình làm tay để thử đường đi,
 không phải bản vẽ của hãng. Màn hình laptop và động cơ nằm ngang được vẽ thành
@@ -169,9 +175,50 @@ Quy ước tên giống lớp DXF: chi tiết hoặc cụm tên `VUNG-<MÃ>` hay
 `VUNG-<MÃ>-<gì cũng được>` thuộc vùng đó, kể cả mọi thứ bên trong cụm;
 `KHUNG-NEN`, `KHUNG-VO`, `KHUNG-TRONG` là khung; ở vùng đèn tháp, tên kết thúc
 `-XANH`, `-VANG`, `-DO` là đèn tương ứng. Bản vẽ của hãng dùng tên riêng thì
-không cần sửa bản vẽ: viết tệp ánh xạ JSON `{"tên chi tiết trong STEP": "mã vùng"}`
-và đưa vào lúc nhập. Thiếu vùng nào, việc nhập bị từ chối và in ra danh sách
-tên chi tiết chưa gán để viết ánh xạ.
+không cần sửa bản vẽ: khoanh vùng bằng công cụ dưới đây. Thiếu vùng nào, việc
+nhập bị từ chối và in ra danh sách tên chi tiết chưa gán.
+
+### Khoanh vùng (bản vẽ của hãng, máy khác bàn thử)
+
+`KHOANH-VUNG.cmd` mở một trang để bấm chọn chi tiết trên hình 3D và gán vào
+vùng. Kéo thả tệp `.step` lên nó (hoặc bấm đúp rồi chọn tệp), gõ mã máy (vd
+`bts7960`), trang tự mở ở `http://127.0.0.1:8793`.
+
+- **Vùng của máy**: máy nào cũng có danh sách vùng riêng (mã, tên, mô tả), thêm
+  ngay trên trang. Mã `ban-thu` là bàn thử: vùng lấy sẵn từ
+  `mo-hinh/ban-thu.json` và không thêm bớt được, vì cảm biến đã gắn vào chúng.
+- **Gán**: bấm chi tiết trên hình hoặc trong danh sách (bấm lại để bỏ chọn),
+  chọn vùng, bấm *Gán*. Ngoài vùng còn có *Khung* (nền, vỏ, phần trong: vẽ mờ,
+  không thuộc vùng nào) và *Bỏ qua* (ốc vít, chi tiết nhỏ: không đưa vào mô
+  hình). *Chọn cả chi tiết cùng tên* để gán một lần mọi con ốc giống nhau.
+- **Hai chi tiết giống hệt nhau** (cùng tên, như hai IC cầu H) vẫn gán được vào
+  hai vùng khác nhau, vì công cụ gán theo *vị trí* của chi tiết trong cụm lắp
+  ráp (vd `1/4`), không theo tên. Vị trí chỉ đúng với đúng tệp STEP đó, nên tệp
+  gán vùng ghi kèm mã SHA-256 của tệp; dùng cho tệp khác thì bị từ chối.
+- **Lưu** ghi vào `ban-ve/may/<mã máy>/`: `danh-muc.json` (các vùng) và
+  `anh-xa.json` (chi tiết nào thuộc vùng nào). Bản bị thay mỗi lần lưu được giữ
+  trong `ban-ve/may/<mã máy>/cu/`.
+- **Nhập vào sổ bản vẽ** ngay trên trang (số bản vẽ, revision, quyền dùng), hoặc
+  sau này bằng lệnh `python -m paotwin.ban_ve nhap <tệp.step> --may <mã máy>`.
+
+Bản vẽ của máy khác bàn thử nhập được (mức Candidate) và xem được trong công
+cụ, nhưng **bản sao chưa dùng được** cho tới khi có cấu hình tín hiệu của máy
+đó: `SO-BAN-VE.cmd` từ chối chọn và nói rõ vùng nào thiếu, thay vì để bản sao
+không khởi động được.
+
+Công cụ chỉ mở trên `127.0.0.1` và chỉ nhận lệnh lưu từ chính trang của nó;
+trang web khác đang mở trong trình duyệt không đọc được bản vẽ hay sửa vùng.
+
+**Trục đứng.** Mỗi phần mềm CAD chọn trục đứng khác nhau: nhiều bản vẽ lấy Z
+làm trục đứng (mặc định ở đây), còn SolidWorks lấy Y, nên đọc theo Z thì máy
+nằm nghiêng hoặc dựng đứng (module BTS7960 là một ví dụ). Công cụ khoanh vùng
+đọc tên phần mềm trong đầu tệp STEP, gợi ý trục, và có nút *Trục đứng* để đổi
+và xem ngay; trục đã chọn được lưu trong tệp gán vùng cùng mã SHA-256 của tệp.
+Nhập bằng lệnh thì thêm `--truc-dung Y`.
+
+Nhập lại đúng tệp đó với cách dựng khác (danh mục vùng, cách gán hay trục đứng
+đã đổi) thì sổ bản vẽ không trả về bộ cũ và cũng không ghi đè: nó yêu cầu một
+revision khác (vd `A2`), để giữ cả hai.
 
 OpenCASCADE đổi đơn vị về mm và chia bề mặt thành tam giác với độ mịn mặc định
 0,2 % đường chéo của máy (ít nhất 0,1 mm); quá 400 000 tam giác thì bị từ chối,
@@ -201,13 +248,16 @@ CAD, không phải cạnh tam giác.
 CHAY-DEMO.cmd          chạy toàn bộ
 KIEM-TRA.cmd           chạy bộ kiểm tra
 NHAP-BAN-VE.cmd        nhập một bản vẽ DXF hoặc STEP (kéo thả tệp lên)
+KHOANH-VUNG.cmd        công cụ khoanh vùng chi tiết của bản vẽ STEP (kéo thả tệp lên)
 CAI-DAT-STEP.cmd       cài thư viện đọc STEP vào .venv (một lần)
 SO-BAN-VE.cmd          xem sổ bản vẽ, xác minh, chọn bộ bản vẽ
 ban-ve/mau/            bản vẽ mẫu BT-001-A.dxf
-ban-ve/so-ban-ve.json  sổ bản vẽ và lịch sử (có sau lần nhập đầu)
+ban-ve/so-ban-ve.json  sổ bản vẽ và lịch sử (có sau lần nhập đầu; không lên git)
+ban-ve/may/<mã>/       vùng và cách gán chi tiết của từng máy (không lên git)
 cau-hinh/mang.json     cổng và chu kỳ gửi
 cau-hinh/tin-hieu.json tín hiệu, vùng, ngưỡng
 mo-hinh/ban-thu.json   mô hình khối 3D (mm)
+mo-hinh/nhap/          mô hình dựng từ bản vẽ đã nhập (không lên git)
 paotwin/mqtt.py        broker và client MQTT 3.1.1
 paotwin/modbus.py      Modbus TCP (chỉ đọc: mã 02, 03, 04)
 paotwin/sensors.py     đọc cảm biến thật của máy
@@ -215,7 +265,8 @@ paotwin/gateway.py     gateway ảo: đọc rồi gửi lên MQTT
 paotwin/sim.py         thiết bị ảo, đường mạng ảo, bảng mô phỏng
 paotwin/engine.py      tính trạng thái từng tín hiệu, từng vùng và cả máy
 paotwin/dxf.py         đọc bản vẽ DXF, dựng khối
-paotwin/step.py        đọc bản vẽ STEP (OpenCASCADE), gán vùng theo tên
+paotwin/step.py        đọc bản vẽ STEP (OpenCASCADE), gán vùng theo vị trí hoặc tên
+paotwin/khoanh_vung.py công cụ khoanh vùng (127.0.0.1:8793)
 paotwin/ban_ve.py      sổ bản vẽ: nhập, xác minh, chọn dùng
 paotwin/server.py      máy chủ bản sao (chỉ có GET, đẩy cập nhật qua SSE)
 web/                   trang bản sao 3D và trang mô phỏng
@@ -234,7 +285,8 @@ cảm biến laptop ─┐
 ## Cổng
 
 Tất cả chỉ mở trên `127.0.0.1`, nên chỉ máy này thấy:
-broker 1884, đường mạng ảo 1885, Modbus 5021, bản sao 8791, mô phỏng 8792.
+broker 1884, đường mạng ảo 1885, Modbus 5021, bản sao 8791, mô phỏng 8792,
+công cụ khoanh vùng 8793 (chỉ khi mở; đổi bằng `--cong`).
 Đổi trong `cau-hinh/mang.json` nếu trùng.
 
 Muốn xem bản sao từ máy khác trong phòng (máy tính bảng, điện thoại): đổi

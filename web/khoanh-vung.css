@@ -1,0 +1,212 @@
+/* Zoning tool: the twin's drawing-sheet look (styles.css), plus a working
+   side column. Zone colours are identities, not states: they never reuse the
+   twin's fault red, and every zone also has its name beside the swatch. */
+
+.kv-bar { gap: 8px 20px; }
+
+.kv-title { min-width: 0; }
+
+.kv-title h1 {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 700;
+}
+
+.kv-file {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.kv-save {
+  margin: 0 0 0 auto;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.kv-save.dirty { color: var(--ink); font-weight: 650; }
+
+button.kv-primary,
+.kv-actions button,
+.kv-add button,
+.kv-import button,
+.kv-zone-edit button {
+  background: var(--sheet);
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+button.kv-primary { background: var(--ink); color: var(--sheet); font-weight: 650; }
+
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.kv-layout { grid-template-columns: minmax(0, 1fr) 420px; }
+
+.kv-picked {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  right: 16px;
+  z-index: 3;
+  margin: 0;
+  font-size: 0.86rem;
+  pointer-events: none;
+}
+
+.kv-picked:empty { display: none; }
+
+.kv-picked span {
+  display: inline-block;
+  max-width: 100%;
+  padding: 3px 8px;
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  overflow-wrap: anywhere;
+}
+
+.kv-note { margin: 0 0 8px; font-size: 0.86rem; color: var(--ink-soft); }
+.kv-note:empty { display: none; }
+
+.kv-help { margin: 2px 0 6px; font-size: 0.8rem; color: var(--ink-soft); }
+
+.kv-error { margin: 4px 0; font-size: 0.86rem; color: var(--loi); font-weight: 600; }
+.kv-error:empty { display: none; }
+
+label { display: block; font-size: 0.86rem; font-weight: 600; margin: 8px 0 3px; }
+
+.kv-filter label, .kv-filter input[type="checkbox"] { display: inline; font-weight: 400; margin: 0; }
+
+input[type="text"], input[type="search"], textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 0.92rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 5px 8px;
+}
+
+textarea { resize: vertical; }
+
+.kv-machine { margin-bottom: 10px; }
+
+.kv-axis.suggest { color: var(--ink); font-weight: 600; }
+
+/* ---- targets: the machine's zones, then frame and "leave out" ---------- */
+
+.kv-targets { list-style: none; margin: 0; padding: 0; }
+
+.kv-special { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--rule); }
+
+.kv-targets button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.kv-targets button:hover { background: var(--paper); }
+
+.kv-targets button[aria-pressed="true"] {
+  border-color: var(--ink);
+  background: var(--paper);
+  box-shadow: inset 3px 0 0 var(--ink);
+}
+
+.kv-targets .name { font-weight: 600; overflow-wrap: anywhere; }
+.kv-targets .id { display: block; font-weight: 400; font-size: 0.78rem; color: var(--ink-soft); }
+.kv-targets .count { font-size: 0.84rem; color: var(--ink-soft); white-space: nowrap; }
+.kv-targets .count.none { color: var(--ink); font-weight: 650; }
+
+.kv-sw {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.kv-sw-khung { background: repeating-linear-gradient(135deg, #9aa7b3 0 3px, transparent 3px 6px); }
+.kv-sw-bo_qua { background: transparent; border-style: dashed; border-color: var(--ink-soft); }
+.kv-sw-chua_gan { background: #c9d1d9; }
+
+.kv-zone-edit {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: var(--paper);
+  border-left: 3px solid var(--ink);
+}
+
+.kv-zone-edit .row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+.kv-add { margin-top: 10px; }
+.kv-add summary { cursor: pointer; font-weight: 600; font-size: 0.92rem; }
+.kv-add form button { margin-top: 8px; }
+
+/* ---- parts ---------------------------------------------------------------- */
+
+.kv-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+
+.kv-filter { display: grid; gap: 6px; margin-bottom: 8px; font-size: 0.88rem; }
+
+.kv-parts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 42vh;
+  overflow-y: auto;
+  border-top: 1px solid var(--rule);
+}
+
+.kv-parts li { border-bottom: 1px solid var(--rule); }
+
+.kv-parts button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 2px 8px;
+  padding: 5px 6px;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.kv-parts button:hover { background: var(--paper); }
+
+.kv-parts button[aria-pressed="true"] { background: var(--paper); box-shadow: inset 3px 0 0 var(--focus); }
+
+.kv-parts .kv-sw { width: 12px; height: 12px; margin-top: 4px; }
+.kv-parts .label { font-weight: 600; overflow-wrap: anywhere; }
+.kv-parts .where { grid-column: 2; font-size: 0.82rem; color: var(--ink-soft); }
+.kv-parts .where.open { color: var(--ink); font-weight: 600; }
+
+/* ---- check and import ------------------------------------------------------ */
+
+.kv-check { margin: 0; padding-left: 20px; font-size: 0.9rem; }
+.kv-check li + li { margin-top: 3px; }
+.kv-ok { margin: 0; font-weight: 650; }
+.kv-counts { margin: 6px 0 0; font-size: 0.84rem; color: var(--ink-soft); }
+
+.kv-import button { margin-top: 10px; }
+
+.kv-result { margin-top: 8px; font-size: 0.9rem; }
+.kv-result:empty { display: none; }
+.kv-result .bad { color: var(--loi); font-weight: 600; }
+
+@media (max-width: 900px) {
+  .kv-layout { display: block; }
+  .kv-parts { max-height: none; }
+  .kv-save { margin-left: 0; }
+}

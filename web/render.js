@@ -1,4 +1,4 @@
-// A small WebGL 1 renderer for a scene made of boxes and cylinders.
+// A small WebGL 1 renderer for a scene of boxes, cylinders, prisms and meshes.
 // No library: the demo installs nothing. Draws on demand, not every frame,
 // so the twin barely loads the GPU it is measuring.
 
@@ -268,6 +268,8 @@ export class Scene {
     this.meshes = [];
     this.camera = { yaw: -0.62, pitch: 0.55, dist: 1500, target: [0, 60, -20] };
     this.home = { ...this.camera, target: [...this.camera.target] };
+    // Clip planes and zoom range, in mm; fit() sets them for a model's size.
+    this.limits = { near: 20, far: 12000, min: 250, max: 4000 };
     this.viewProj = null;
     this.background = [0.91, 0.93, 0.95];
     this.edgeColor = [0.12, 0.2, 0.28];
@@ -317,6 +319,16 @@ export class Scene {
     return mesh;
   }
 
+  // Drops every mesh (their GPU buffers too), e.g. to load the model again.
+  clear() {
+    const gl = this.gl;
+    for (const m of this.meshes) {
+      for (const b of [m.pos, m.nor, m.idx, m.edgePos, m.edgeNor]) gl.deleteBuffer(b);
+    }
+    this.meshes = [];
+    this.request();
+  }
+
   resize() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = Math.max(1, Math.round(this.canvas.clientWidth * dpr));
@@ -339,7 +351,7 @@ export class Scene {
     // A narrow screen (a phone held upright) needs a wider vertical angle
     // to keep the whole bench in view.
     const fov = aspect < 1.25 ? 2 * Math.atan(Math.tan((19 * Math.PI) / 180) * (1.25 / aspect)) : (38 * Math.PI) / 180;
-    const proj = perspective(Math.min(fov, (80 * Math.PI) / 180), aspect, 20, 12000);
+    const proj = perspective(Math.min(fov, (80 * Math.PI) / 180), aspect, this.limits.near, this.limits.far);
     this.viewProj = multiply(proj, lookAt(this.eye(), this.camera.target, [0, 1, 0]));
   }
 
@@ -528,7 +540,20 @@ export class Scene {
   }
 
   zoomTo(dist) {
-    this.camera.dist = Math.max(250, Math.min(4000, dist));
+    this.camera.dist = Math.max(this.limits.min, Math.min(this.limits.max, dist));
+    this.request();
+  }
+
+  // Frames a model of any size, a 6 cm board as a 20 m line: box is
+  // [x0, y0, z0, x1, y1, z1]. Becomes the view "home" returns to.
+  fit(box) {
+    const [x0, y0, z0, x1, y1, z1] = box;
+    const size = Math.max(Math.hypot(x1 - x0, y1 - y0, z1 - z0), 1);
+    // near/far kept within 1:1000 so the 16-bit depth of pick() stays exact.
+    this.limits = { near: size / 50, far: size * 20, min: size * 0.08, max: size * 6 };
+    this.camera = { yaw: -0.62, pitch: 0.55, dist: size * 1.6,
+      target: [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2] };
+    this.home = { ...this.camera, target: [...this.camera.target] };
     this.request();
   }
 
@@ -539,7 +564,7 @@ export class Scene {
 
   focus(point, dist) {
     this.camera.target = [...point];
-    if (dist) this.camera.dist = dist;
+    if (dist) this.camera.dist = Math.max(this.limits.min, Math.min(this.limits.max, dist));
     this.request();
   }
 }

@@ -2,3 +2,10 @@ __pycache__/
 *.pyc
 nhat-ky/
 .venv/
+
+# Ban ve that va moi thu dung tu ban ve that khong len git: kho GitHub cong khai,
+# ban ve may thuong la tai lieu mat. Ban mau tu ve (ban-ve/mau/) van len git.
+ban-ve/tep/
+ban-ve/so-ban-ve.json
+ban-ve/may/
+mo-hinh/nhap/

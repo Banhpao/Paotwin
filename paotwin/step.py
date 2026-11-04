@@ -13,22 +13,48 @@ Naming rule, the same as the DXF layers: a part or sub-assembly whose name is
 ``VUNG-<ID>`` or ``VUNG-<ID>-<anything>`` belongs to zone <ID> (and everything
 under it, unless renamed below); ``KHUNG-NEN``, ``KHUNG-VO``, ``KHUNG-TRONG``
 are the frame. In the stack-light zone a name ending in ``-XANH``,
-``-VANG`` or ``-DO`` says which lamp it is. When a supplier's drawing uses
-its own names, a mapping file ``{"part name in the STEP": "zone id"}`` maps
-them without editing the drawing.
+``-VANG`` or ``-DO`` says which lamp it is.
 
-Units: OpenCASCADE converts the file to millimetres. Axes: CAD Z is up; the
-twin's x = X, up = Z, z = -Y.
+When a supplier's drawing uses its own names, a zone file (tệp gán vùng)
+places parts without editing the drawing:
+
+- version 1: ``{"part name in the STEP": "zone id"}``;
+- version 2, written by the zoning tool (khoanh_vung)::
+
+    {"phien_ban": 2, "sha256": "<of the STEP file>",
+     "chi_tiet": {"1/4": {"vung": "ic_trai"}, "1/1": {"khung": "nen"},
+                  "1/9": {"bo_qua": true}},
+     "ten": {"part name": {"vung": "..."}}}
+
+  ``chi_tiet`` is keyed by the part's position in the assembly (the ordinal
+  of each component from the top, ``1/3/2``), so two identical parts with the
+  same name can go to different zones. Positions only mean something for the
+  file they were taken from, hence the ``sha256``. A position decision wins
+  over a name decision, which wins over the naming rule.
+
+Units: OpenCASCADE converts the file to millimetres. Axes: which CAD axis is
+"up" depends on the program that wrote the file. Z up (the default, as in
+CATIA, NX, most mechanical layouts): the twin's x = X, up = Z, z = -Y.
+Y up (SolidWorks' own convention, and others): x = X, up = Y, z = Z. The zone
+file records the choice (``"truc_dung": "Y"``) beside the sha256, because it
+belongs to that file; ``origin_of`` reads which program wrote a file, to
+suggest it.
 """
 
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass, field
 
 from .dxf import FRAME_LAYERS, ZONE_PREFIX, DxfError, Report
 
 LAMP_WORDS = {"XANH": "xanh", "VANG": "vang", "DO": "do"}
+ZONE_ID = re.compile(r"^[a-z0-9_]{1,40}$")
+UP_AXES = ("Z", "Y")
+# Programs whose STEP files have Y up, as seen on files they wrote (SolidWorks:
+# the BTS7960 module stood on its edge when read as Z up). Only a suggestion.
+Y_UP_SYSTEMS = ("solidworks",)
 MAX_TRIANGLES = 400_000
 PACKAGE = "cadquery-ocp-novtk"
 
@@ -52,15 +78,99 @@ class PlainPart:
     vertices: list[tuple[float, float, float]]
     triangles: list[tuple[int, int, int]]
     edges: list[list[tuple[float, float, float]]] = field(default_factory=list)
+    key: str = ""                          # position in the assembly, e.g. "1/3/2"
 
 
-def classify(names: list[str], mapping: dict[str, str]) -> tuple[str, str] | None:
-    """('zone', id) or ('frame', kind) from the nearest named level, or None."""
+def target(value, where: str) -> dict:
+    """One decision from a zone file, checked and normalised:
+    {"vung": id[, "den": lamp]} | {"khung": kind} | {"bo_qua": True}."""
+    if isinstance(value, str):
+        value = {"vung": value}
+    if not isinstance(value, dict):
+        raise StepError(f"tệp gán vùng, {where}: phải là mã vùng hoặc một đối tượng")
+    kinds = [k for k in ("vung", "khung", "bo_qua") if k in value]
+    if len(kinds) != 1:
+        raise StepError(f"tệp gán vùng, {where}: cần đúng một trong vung / khung / bo_qua")
+    extra = set(value) - {"vung", "khung", "bo_qua", "den", "nhan"}
+    if extra:
+        raise StepError(f"tệp gán vùng, {where}: không hiểu khoá {', '.join(sorted(extra))}")
+    out: dict = {}
+    if "vung" in value:
+        zone = str(value["vung"]).strip().lower()
+        if not ZONE_ID.match(zone):
+            raise StepError(f"tệp gán vùng, {where}: mã vùng {value['vung']!r} không hợp lệ")
+        out["vung"] = zone
+        if value.get("den") is not None:
+            if value["den"] not in LAMP_WORDS.values():
+                raise StepError(f"tệp gán vùng, {where}: đèn phải là xanh, vang hoặc do")
+            out["den"] = value["den"]
+    elif "khung" in value:
+        if value["khung"] not in FRAME_LAYERS.values():
+            raise StepError(f"tệp gán vùng, {where}: khung phải là "
+                            + ", ".join(FRAME_LAYERS.values()))
+        out["khung"] = value["khung"]
+    else:
+        if value["bo_qua"] is not True:
+            raise StepError(f"tệp gán vùng, {where}: bo_qua chỉ nhận true")
+        out["bo_qua"] = True
+    if "den" in value and "vung" not in value:
+        raise StepError(f"tệp gán vùng, {where}: đèn chỉ dùng cùng vung")
+    if isinstance(value.get("nhan"), str):
+        out["nhan"] = value["nhan"][:200]       # a label for people; not used to place
+    return out
+
+
+@dataclass
+class ZoneMap:
+    """The decisions of a zone file (version 1 or 2), checked."""
+    by_key: dict[str, dict] = field(default_factory=dict)
+    by_name: dict[str, dict] = field(default_factory=dict)
+    sha256: str | None = None
+    up: str | None = None                  # "Z" / "Y" when the file says, else None
+
+    @classmethod
+    def of(cls, data) -> "ZoneMap":
+        if isinstance(data, ZoneMap):
+            return data
+        if not data:
+            return cls()
+        if not isinstance(data, dict):
+            raise StepError("tệp gán vùng phải là một đối tượng JSON")
+        if data.get("phien_ban") == 2:
+            parts = data.get("chi_tiet") or {}
+            names = data.get("ten") or {}
+            if not isinstance(parts, dict) or not isinstance(names, dict):
+                raise StepError("tệp gán vùng: chi_tiet và ten phải là đối tượng")
+            up = data.get("truc_dung")
+            if up is not None and up not in UP_AXES:
+                raise StepError(f"tệp gán vùng: truc_dung phải là {' hoặc '.join(UP_AXES)}, không phải {up!r}")
+            return cls({str(k): target(v, f"chi tiết {k}") for k, v in parts.items()},
+                       {str(k): target(v, f"tên {k!r}") for k, v in names.items()},
+                       data.get("sha256"), up)
+        if "phien_ban" in data:
+            raise StepError(f"tệp gán vùng phiên bản {data['phien_ban']!r} chưa đọc được")
+        return cls({}, {str(k): target(v, f"tên {k!r}") for k, v in data.items()})
+
+
+def _place(decision: dict) -> tuple[str, str]:
+    if "vung" in decision:
+        return "zone", decision["vung"]
+    if "khung" in decision:
+        return "frame", decision["khung"]
+    return "skip", ""
+
+
+def classify(names: list[str], mapping, key: str | None = None) -> tuple[str, str] | None:
+    """('zone', id), ('frame', kind) or ('skip', '') from the most specific
+    decision: the part's position, then the nearest named level; or None."""
+    zmap = ZoneMap.of(mapping)
+    if key and key in zmap.by_key:
+        return _place(zmap.by_key[key])
     for name in reversed(names):
         if not name:
             continue
-        if name in mapping:
-            return "zone", mapping[name].lower()
+        if name in zmap.by_name:
+            return _place(zmap.by_name[name])
         upper = name.strip().upper()
         for layer, kind in FRAME_LAYERS.items():
             if upper == layer or upper.startswith(layer + "-"):
@@ -73,7 +183,14 @@ def classify(names: list[str], mapping: dict[str, str]) -> tuple[str, str] | Non
     return None
 
 
-def lamp_of(names: list[str]) -> str | None:
+def lamp_of(names: list[str], mapping=None, key: str | None = None) -> str | None:
+    """The lamp a decision names, else the name's ending (-XANH, -VANG, -DO)."""
+    zmap = ZoneMap.of(mapping)
+    if key and zmap.by_key.get(key, {}).get("den"):
+        return zmap.by_key[key]["den"]
+    for name in reversed(names):
+        if zmap.by_name.get(name, {}).get("den"):
+            return zmap.by_name[name]["den"]
     for name in reversed(names):
         tail = name.strip().upper().rsplit("-", 1)[-1]
         if tail in LAMP_WORDS:
@@ -81,29 +198,59 @@ def lamp_of(names: list[str]) -> str | None:
     return None
 
 
-def to_twin(p: tuple[float, float, float]) -> list[float]:
+def to_twin(p: tuple[float, float, float], up: str = "Z") -> list[float]:
+    """CAD point (mm) to the twin's (x, up, z); both turns keep the model
+    right-handed, so nothing is mirrored."""
     x, y, z = p
+    if up == "Y":
+        return [round(x, 2), round(y, 2), round(z, 2)]
     return [round(x, 2), round(z, 2), round(-y, 2)]
 
 
-def mesh_part(part: PlainPart) -> dict:
-    verts = [to_twin(v) for v in part.vertices]
+def origin_of(path) -> str:
+    """The program that wrote a STEP file, from its header (FILE_NAME's
+    originating_system), or "" when the header does not say."""
+    with open(path, "rb") as handle:
+        head = handle.read(65536).decode("latin-1", errors="replace")
+    found = re.search(r"FILE_NAME\s*\((.*?)\)\s*;", head, re.S)
+    if not found:
+        return ""
+    quoted = re.findall(r"'((?:[^']|'')*)'", found.group(1))
+    # name, time, author(s), organisation(s), preprocessor, originating system, authorisation
+    return quoted[-2].strip() if len(quoted) >= 7 else ""
+
+
+def suggested_up(system: str) -> str | None:
+    return "Y" if any(word in system.lower() for word in Y_UP_SYSTEMS) else None
+
+
+def mesh_part(part: PlainPart, up: str = "Z") -> dict:
+    verts = [to_twin(v, up) for v in part.vertices]
     flat = [c for v in verts for c in v]
     tris = [i for t in part.triangles for i in t]
     edges = []
     for line in part.edges:
-        pts = [to_twin(p) for p in line]
+        pts = [to_twin(p, up) for p in line]
         for a, b in zip(pts, pts[1:]):
             edges.extend(a + b)
     xs, ys, zs = flat[0::3], flat[1::3], flat[2::3]
     return {"hinh": "luoi", "dinh": flat, "tam_giac": tris, "canh": edges,
             "hop_bao": [min(xs), min(ys), min(zs), max(xs), max(ys), max(zs)],
-            "nguon": " / ".join(n for n in part.names if n)}
+            "nguon": " / ".join(n for n in part.names if n),
+            **({"khoa": part.key} if part.key else {})}
 
 
 def assemble(parts: list[PlainPart], catalog: dict, record: dict,
-             mapping: dict[str, str] | None = None) -> tuple[dict, Report]:
-    mapping = mapping or {}
+             mapping=None, up: str | None = None) -> tuple[dict, Report]:
+    zmap = ZoneMap.of(mapping)
+    if up is not None and up not in UP_AXES:
+        raise StepError(f"trục đứng phải là {' hoặc '.join(UP_AXES)}, không phải {up!r}")
+    if up and zmap.up and up != zmap.up:
+        raise StepError(f"tệp gán vùng ghi trục đứng {zmap.up}, lệnh nhập chọn {up}: chọn một")
+    up = up or zmap.up or "Z"
+    if zmap.by_key and zmap.sha256 and record.get("sha256") and zmap.sha256 != record["sha256"]:
+        raise StepError("tệp gán vùng được làm cho một tệp STEP khác (mã sha256 không khớp): "
+                        "vị trí chi tiết không còn đúng, khoanh vùng lại với tệp này")
     report = Report()
     zones: dict[str, list[dict]] = {}
     frame: list[dict] = []
@@ -113,16 +260,19 @@ def assemble(parts: list[PlainPart], catalog: dict, record: dict,
         if not part.triangles:
             report.skip(f"{' / '.join(part.names) or 'chi tiết không tên'}: không chia được thành tam giác")
             continue
-        where = classify(part.names, mapping)
+        where = classify(part.names, zmap, part.key)
+        label = " / ".join(n for n in part.names if n) or "(không tên)"
         if where is None:
-            key = " / ".join(n for n in part.names if n) or "(không tên)"
-            unnamed[key] = unnamed.get(key, 0) + 1
+            unnamed[label] = unnamed.get(label, 0) + 1
+            continue
+        if where[0] == "skip":
+            report.ignored[label] = report.ignored.get(label, 0) + 1
             continue
         triangles += len(part.triangles)
-        piece = mesh_part(part)
+        piece = mesh_part(part, up)
         report.shapes += 1
         if where[0] == "zone":
-            lamp = lamp_of(part.names)
+            lamp = lamp_of(part.names, zmap, part.key)
             if lamp:
                 piece["den"] = lamp
             zones.setdefault(where[1], []).append(piece)
@@ -131,6 +281,11 @@ def assemble(parts: list[PlainPart], catalog: dict, record: dict,
             piece["ten"] = part.names[-1] if part.names else where[1]
             frame.append(piece)
     report.other_layers = unnamed
+    known_keys = {p.key for p in parts if p.key}
+    stray = sorted(k for k in zmap.by_key if k not in known_keys)
+    if stray:
+        report.skip(f"tệp gán vùng có {len(stray)} vị trí không thấy trong bản vẽ: "
+                    + ", ".join(stray[:10]) + (" …" if len(stray) > 10 else ""))
     if triangles > MAX_TRIANGLES:
         raise StepError(f"bản vẽ chia ra {triangles} tam giác, quá {MAX_TRIANGLES}: "
                         "nhập lại với độ mịn thô hơn (--do-min lớn hơn)")
@@ -146,7 +301,7 @@ def assemble(parts: list[PlainPart], catalog: dict, record: dict,
             names = ", ".join(sorted(unnamed)[:12])
             hint = (f". Các tên chi tiết chưa gán vùng: {names}"
                     + (" …" if len(unnamed) > 12 else "")
-                    + ". Có thể gán bằng tệp ánh xạ (--anh-xa).")
+                    + ". Gán bằng công cụ khoanh vùng (KHOANH-VUNG.cmd) hoặc tệp gán vùng (--anh-xa).")
         raise StepError("danh mục có vùng mà bản vẽ không có chi tiết nào: "
                         + ", ".join(ZONE_PREFIX + z.upper() for z in missing) + hint)
     out_zones = []
@@ -162,7 +317,7 @@ def assemble(parts: list[PlainPart], catalog: dict, record: dict,
         "ten": record.get("ten") or catalog.get("ten", ""),
         "trang_thai_ban_ve": record["muc"],
         "ban_ve": dict({k: record[k] for k in ("id", "so_ban_ve", "revision", "tep_nguon", "sha256", "muc")},
-                       loai="step"),
+                       loai="step", truc_dung=up),
         "ghi_chu": (f"Dựng từ bản vẽ STEP bằng OpenCASCADE: {triangles} tam giác. "
                     "Chi tiết không gán được vùng được liệt kê trong sổ bản vẽ, không đoán."),
         "ghi_chu_kiem_tra": catalog.get("ghi_chu_kiem_tra", ""),
@@ -232,9 +387,12 @@ def occ_parts(path, deflection: float | None = None) -> tuple[list[PlainPart], d
             return attr.Get().ToExtString()
         return ""
 
-    leaves: list[tuple[list[str], object]] = []
+    leaves: list[tuple[list[str], object, str]] = []
 
-    def walk(label, loc, names, depth=0):
+    # A part's key is the ordinal of each component on the way down ("1/3/2"):
+    # the same for every reading of the same file, and different for two
+    # copies of one part, which share a name.
+    def walk(label, loc, names, path, depth=0):
         if depth > 64:
             raise StepError("cây lắp ráp sâu quá 64 cấp")
         own = name_of(label)
@@ -243,32 +401,36 @@ def occ_parts(path, deflection: float | None = None) -> tuple[list[PlainPart], d
             XCAFDoc_ShapeTool.GetReferredShape_s(label, ref)
             inner = loc.Multiplied(XCAFDoc_ShapeTool.GetLocation_s(label))
             # The instance name and the product name can differ; keep both.
-            walk(ref, inner, names + [own], depth + 1)
+            walk(ref, inner, names + [own], path, depth + 1)
         elif XCAFDoc_ShapeTool.IsAssembly_s(label):
             # The components of an assembly are its child labels.
             child = TDF_ChildIterator(label, False)
+            ordinal = 0
             while child.More():
                 comp = child.Value()
                 if XCAFDoc_ShapeTool.IsComponent_s(comp):
-                    walk(comp, loc, names + [own], depth + 1)
+                    ordinal += 1
+                    walk(comp, loc, names + [own], path + [ordinal], depth + 1)
                 child.Next()
         else:
             shape = XCAFDoc_ShapeTool.GetShape_s(label)
             if not shape.IsNull():
-                leaves.append((names + [own], shape.Moved(loc)))
+                leaves.append((names + [own], shape.Moved(loc), "/".join(map(str, path))))
 
     # Free shapes are the top-level shape labels no assembly uses.
     top = TDF_ChildIterator(shape_tool.Label(), False)
+    free = 0
     while top.More():
         label = top.Value()
         if XCAFDoc_ShapeTool.IsShape_s(label) and XCAFDoc_ShapeTool.IsFree_s(label):
-            walk(label, TopLoc_Location(), [])
+            free += 1
+            walk(label, TopLoc_Location(), [], [free])
         top.Next()
     if not leaves:
         raise StepError("tệp STEP không có chi tiết hình học nào")
 
     box = Bnd_Box()
-    for _names, shape in leaves:
+    for _names, shape, _key in leaves:
         BRepBndLib.Add_s(shape, box, True)
     try:
         # Bnd_Box.Get() returns a struct OCP 8 cannot convert; the corners work.
@@ -276,7 +438,7 @@ def occ_parts(path, deflection: float | None = None) -> tuple[list[PlainPart], d
         xmin, ymin, zmin, xmax, ymax, zmax = low.X(), low.Y(), low.Z(), high.X(), high.Y(), high.Z()
     except (TypeError, AttributeError):
         points = []
-        for _names, shape in leaves:
+        for _names, shape, _key in leaves:
             vertex = TopExp_Explorer(shape, TopAbs_ShapeEnum.TopAbs_VERTEX)
             while vertex.More():
                 p = BRep_Tool.Pnt_s(as_vertex(vertex.Current()))
@@ -291,7 +453,7 @@ def occ_parts(path, deflection: float | None = None) -> tuple[list[PlainPart], d
         deflection = max(0.1, diagonal * 0.002)
 
     parts = []
-    for names, shape in leaves:
+    for names, shape, key in leaves:
         BRepMesh_IncrementalMesh(shape, deflection, False, 0.5, True)
         vertices, triangles = [], []
         explorer = TopExp_Explorer(shape, TopAbs_ShapeEnum.TopAbs_FACE)
@@ -317,13 +479,13 @@ def occ_parts(path, deflection: float | None = None) -> tuple[list[PlainPart], d
             edge = as_edge(edge_explorer.Current())
             edge_explorer.Next()
             try:
-                key = hash(edge)       # an edge shared by two faces is drawn once
+                edge_id = hash(edge)   # an edge shared by two faces is drawn once
             except TypeError:
-                key = None
-            if key is not None:
-                if key in seen:
+                edge_id = None
+            if edge_id is not None:
+                if edge_id in seen:
                     continue
-                seen.add(key)
+                seen.add(edge_id)
             if BRep_Tool.Degenerated_s(edge):
                 continue
             try:
@@ -337,7 +499,7 @@ def occ_parts(path, deflection: float | None = None) -> tuple[list[PlainPart], d
                     edges.append(line)
             except Exception:  # an edge without a 3D curve: the mesh is still drawn
                 continue
-        parts.append(PlainPart([n for n in names if n is not None], vertices, triangles, edges))
+        parts.append(PlainPart([n for n in names if n is not None], vertices, triangles, edges, key))
     return parts, {"kich_thuoc_mm": [round(xmax - xmin, 1), round(ymax - ymin, 1), round(zmax - zmin, 1)],
                    "do_min_mm": round(deflection, 3)}
 
@@ -434,10 +596,11 @@ def diagnose(error: BaseException) -> str:
     return "\n".join(lines)
 
 
-def build_model(path, catalog: dict, record: dict, mapping: dict[str, str] | None = None,
-                deflection: float | None = None) -> tuple[dict, Report, dict]:
+def build_model(path, catalog: dict, record: dict, mapping=None,
+                deflection: float | None = None, up: str | None = None) -> tuple[dict, Report, dict]:
     parts, info = occ_parts(path, deflection)
-    model, report = assemble(parts, catalog, record, mapping)
+    model, report = assemble(parts, catalog, record, mapping, up)
+    info["truc_dung"] = model["ban_ve"]["truc_dung"]
     return model, report, info
 
 
