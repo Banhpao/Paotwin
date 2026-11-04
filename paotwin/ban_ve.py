@@ -7,10 +7,13 @@ Levels (DEC-001, DEC-005, CORE-02):
 - candidate: built from a drawing file, not yet checked against the machine.
 - verified: a named person checked it against the machine as installed.
 
-A drawing of the test bench uses the bench's zones (mo-hinh/ban-thu.json).
-A drawing of another machine uses that machine's own zone list, made with the
-zoning tool (khoanh_vung) in ban-ve/may/<mã máy>/: danh-muc.json (the zones)
-and anh-xa.json (which part goes in which zone). Real drawings and what is
+A drawing of the test bench uses the bench's zones (mo-hinh/ban-thu.json)
+and signals (cau-hinh/tin-hieu.json). A drawing of another machine uses that
+machine's own folder ban-ve/may/<mã máy>/: danh-muc.json (the zones, made with
+the zoning tool), anh-xa.json (which part goes in which zone) and, once its
+sensors are known, tin-hieu.json (same format as cau-hinh/tin-hieu.json). The
+twin uses the signals of the machine whose drawing it shows; a machine without
+tin-hieu.json cannot be chosen. Real drawings and what is
 built from them stay out of git (see .gitignore): models built here go to
 mo-hinh/nhap/.
 
@@ -204,6 +207,8 @@ def import_drawing(source: Path, *, person: str, rights: str, root: Path | None 
     record["bao_cao"] = {"so_khoi": report.shapes, "bo_qua": report.skipped,
                          "lop_khac": report.other_layers, "chua_ho_tro": report.unsupported,
                          "bo_qua_theo_gan": report.ignored, **extra}
+    if catalog.get("ma") and catalog["ma"] != BENCH:
+        model["may"] = catalog["ma"]    # which machine's signals the twin uses with it
     (root / record["mo_hinh"]).parent.mkdir(parents=True, exist_ok=True)
     _write_model(model, root / record["mo_hinh"])
     register["bo"].append(record)
@@ -235,9 +240,37 @@ def verify(set_id: str, *, person: str, note: str, root: Path | None = None) -> 
     return record
 
 
-def _zones_the_signals_need(root: Path) -> dict[str, list[str]]:
-    path = root / "cau-hinh" / "tin-hieu.json"
-    config = common.load_json(path) if path.exists() else common.signals_config()
+BENCH = "ban-thu"
+_MACHINE_IN_PATH = re.compile(r"^ban-ve/may/([^/]+)/")
+
+
+def machine_of(model: dict, record: dict | None = None) -> str | None:
+    """The machine a model is of; None for the test bench."""
+    machine = model.get("may")
+    if not machine and record:
+        found = _MACHINE_IN_PATH.match(record.get("danh_muc") or "")
+        machine = found.group(1) if found else None
+    return None if machine in (None, "", BENCH) else machine
+
+
+def signals_for(model: dict, root: Path | None = None,
+                record: dict | None = None) -> tuple[dict, str]:
+    """(signal configuration, where it is) for the machine the model is of."""
+    root = root or common.ROOT
+    machine = machine_of(model, record)
+    if machine is None:
+        path = root / "cau-hinh" / "tin-hieu.json"
+        config = common.load_json(path) if path.exists() else common.signals_config()
+        return config, "cau-hinh/tin-hieu.json"
+    path = machine_folder(machine, root) / "tin-hieu.json"
+    where = path.relative_to(root).as_posix()
+    if not path.exists():
+        raise SystemExit(f"Máy {machine} chưa có cấu hình tín hiệu ({where}): bản sao cần biết cảm biến "
+                         "nào gắn vào vùng nào của máy này (xem README, mục Tín hiệu của từng máy).")
+    return common.load_json(path), where
+
+
+def _zones_the_signals_need(config: dict) -> dict[str, list[str]]:
     need: dict[str, list[str]] = {}
     for signal in config.get("tin_hieu", []):
         need.setdefault(signal["vung"], []).append(signal["id"])
@@ -254,16 +287,23 @@ def use(set_id: str, *, person: str, root: Path | None = None) -> None:
         register["dang_dung"] = None
     else:
         record = _find(register, set_id)
-        # The twin attaches each configured signal to a zone of the model; a
-        # drawing of another machine has other zones, and the twin would not
-        # start. Say so now rather than at the next start.
-        have = {z["id"] for z in common.load_json(root / record["mo_hinh"])["vung"]}
-        missing = sorted(z for z in _zones_the_signals_need(root) if z not in have)
+        # The twin attaches each signal of the machine to a zone of the model;
+        # a mismatch would stop it from starting. Say so now, not at the next start.
+        model = common.load_json(root / record["mo_hinh"])
+        config, where = signals_for(model, root, record)
+        have = {z["id"] for z in model["vung"]}
+        missing = sorted(z for z in _zones_the_signals_need(config) if z not in have)
         if missing:
+            other = machine_of(model, record) is None and record.get("danh_muc")
             raise SystemExit(
-                f"Chưa dùng được bộ {set_id} cho bản sao: tín hiệu đang cấu hình (cau-hinh/tin-hieu.json) "
-                f"gắn vào vùng {', '.join(missing)} mà bản vẽ này không có. Đây là bản vẽ của máy khác "
-                f"({record.get('danh_muc') or 'danh mục riêng'}); cần cấu hình tín hiệu cho máy đó trước.")
+                f"Chưa dùng được bộ {set_id} cho bản sao: tín hiệu trong {where} gắn vào vùng "
+                f"{', '.join(missing)} mà bản vẽ này không có."
+                + (f" Bản vẽ dựng theo danh mục {record['danh_muc']}." if other else ""))
+        try:
+            from .engine import Engine
+            Engine(config, model)
+        except (KeyError, TypeError, ValueError) as exc:
+            raise SystemExit(f"Chưa dùng được bộ {set_id}: {where} có chỗ sai ({exc!r}).") from None
         register["dang_dung"] = set_id
     _log(register, {"viec": "dung", "bo": set_id, "nguoi": person,
                     "ghi_chu": "Bản sao dùng bộ này từ lần chạy tới"})
@@ -276,7 +316,11 @@ def model_in_use(root: Path | None = None) -> dict:
     register = load(root)
     if register.get("dang_dung"):
         record = _find(register, register["dang_dung"])
-        return common.load_json(root / record["mo_hinh"])
+        model = common.load_json(root / record["mo_hinh"])
+        machine = machine_of(model, record)
+        if machine:
+            model["may"] = machine      # older sets name it only in the record
+        return model
     return common.load_json(root / "mo-hinh" / "ban-thu.json")
 
 

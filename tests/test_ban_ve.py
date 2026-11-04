@@ -186,9 +186,55 @@ class OtherMachineTest(unittest.TestCase):
         self.assertEqual(record["danh_muc"], "ban-ve/may/may-thu/danh-muc.json")
         model = common.load_json(self.root / record["mo_hinh"])
         self.assertEqual([z["id"] for z in model["vung"]], ["ic_trai", "tan_nhiet"])
-        with self.assertRaisesRegex(SystemExit, "gpu"):
+        self.assertEqual(model["may"], "may-thu")
+        # Its sensors are not known yet: not chosen, and the file it needs is named.
+        with self.assertRaisesRegex(SystemExit, "ban-ve/may/may-thu/tin-hieu.json"):
             ban_ve.use(record["id"], person="An", root=self.root)
         self.assertIsNone(ban_ve.load(self.root)["dang_dung"])
+        # The bench's signals are never used for it.
+        with self.assertRaisesRegex(SystemExit, "may-thu"):
+            ban_ve.signals_for(model, self.root)
+
+    def machine_signals(self, zone="ic_trai"):
+        folder = self.root / "ban-ve" / "may" / "may-thu"
+        folder.mkdir(parents=True, exist_ok=True)
+        config = {"phien_ban": 1, "mat_tin_hieu_sau_s": 6, "may": [],
+                  "tin_hieu": [{"id": "may-thu/nhiet_ic", "ten": "Nhiệt độ IC", "don_vi": "°C",
+                                "vung": zone, "kieu": "so",
+                                "nguong": {"nguon": "demo", "huong": "tren", "canh_bao": 80, "loi": 100}}]}
+        (folder / "tin-hieu.json").write_text(json.dumps(config, ensure_ascii=False), encoding="utf-8")
+        return config
+
+    def test_a_machine_with_its_own_signals_can_be_shown(self):
+        record, _, _ = ban_ve.import_drawing(
+            self.drawing, person="An", rights="thử", root=self.root, catalog=self.CATALOG,
+            catalog_source="ban-ve/may/may-thu/danh-muc.json", number="M-1", revision="A")
+        config = self.machine_signals()
+        ban_ve.use(record["id"], person="An", root=self.root)
+        model = ban_ve.model_in_use(self.root)
+        got, where = ban_ve.signals_for(model, self.root)
+        self.assertEqual((got, where), (config, "ban-ve/may/may-thu/tin-hieu.json"))
+        _, zones = Engine(got, model).evaluate(0)
+        self.assertEqual(set(zones), {"ic_trai", "tan_nhiet"})
+        # Back to the bench: the bench's own signals again.
+        ban_ve.use(ban_ve.REFERENCE, person="An", root=self.root)
+        self.assertEqual(ban_ve.signals_for(ban_ve.model_in_use(self.root), self.root)[1],
+                         "cau-hinh/tin-hieu.json")
+
+    def test_a_machine_signal_file_that_does_not_match_is_refused(self):
+        record, _, _ = ban_ve.import_drawing(
+            self.drawing, person="An", rights="thử", root=self.root, catalog=self.CATALOG,
+            catalog_source="ban-ve/may/may-thu/danh-muc.json", number="M-1", revision="A")
+        self.machine_signals(zone="khong_co")
+        with self.assertRaisesRegex(SystemExit, "khong_co"):
+            ban_ve.use(record["id"], person="An", root=self.root)
+        self.assertIsNone(ban_ve.load(self.root)["dang_dung"])
+
+    def test_an_older_set_names_its_machine_in_the_record(self):
+        model = {"vung": []}
+        self.assertEqual(ban_ve.machine_of(model, {"danh_muc": "ban-ve/may/m2/danh-muc.json"}), "m2")
+        self.assertIsNone(ban_ve.machine_of(model, {"danh_muc": "khac/danh-muc.json"}))
+        self.assertIsNone(ban_ve.machine_of({"may": "ban-thu"}))
 
     def test_a_zone_list_must_be_usable(self):
         bad = [{}, {"vung": []}, {"vung": [{"id": "Có dấu", "ten": "x"}]},

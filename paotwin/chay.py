@@ -101,14 +101,31 @@ def wait_port(host: str, port: int, timeout: float) -> bool:
     return False
 
 
+def utf8_output() -> None:
+    """Vietnamese text out whatever this launcher writes to. Started by a
+    supervisor (Paoihub) its output is a pipe, and on Windows a pipe defaults
+    to the ANSI code page (cp1252), which cannot write "Bản sao"."""
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+
 def pump(name: str, process: subprocess.Popen, log_file) -> None:
     for raw in iter(process.stdout.readline, b""):
         line = raw.decode("utf-8", errors="replace").rstrip()
-        print(line, flush=True)
         log_file.write(line + "\n")
         log_file.flush()
+        try:
+            print(line, flush=True)
+        except (OSError, ValueError, UnicodeError):
+            # Keep reading even when the console cannot take the line:
+            # a part whose output is not read blocks once the pipe is full.
+            pass
     code = process.wait()
-    print(f"*** {name} đã dừng (mã {code})", flush=True)
+    try:
+        print(f"*** {name} đã dừng (mã {code})", flush=True)
+    except (OSError, ValueError, UnicodeError):
+        pass
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -116,6 +133,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--khong-mo-trinh-duyet", action="store_true",
                         help="không tự mở hai trang web")
     args = parser.parse_args(argv)
+    utf8_output()
     net = common.network()
 
     ports = [("broker", net["broker"]), ("đường mạng ảo", net["duong_mang_ao"]),

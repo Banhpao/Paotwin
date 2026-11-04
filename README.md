@@ -203,8 +203,29 @@ vùng. Kéo thả tệp `.step` lên nó (hoặc bấm đúp rồi chọn tệp)
 
 Bản vẽ của máy khác bàn thử nhập được (mức Candidate) và xem được trong công
 cụ, nhưng **bản sao chưa dùng được** cho tới khi có cấu hình tín hiệu của máy
-đó: `SO-BAN-VE.cmd` từ chối chọn và nói rõ vùng nào thiếu, thay vì để bản sao
-không khởi động được.
+đó (mục dưới): `SO-BAN-VE.cmd` từ chối chọn và nói rõ thiếu gì, thay vì để bản
+sao không khởi động được.
+
+### Tín hiệu của từng máy
+
+Bàn thử (laptop và thiết bị ảo) dùng `cau-hinh/tin-hieu.json`, như trước.
+Máy khác dùng tệp riêng `ban-ve/may/<mã máy>/tin-hieu.json`, cùng dạng với tệp
+của bàn thử, mỗi tín hiệu gắn vào một vùng trong danh mục của máy đó. Bản sao
+tự lấy đúng tệp theo bản vẽ đang dùng, và không bao giờ đem tín hiệu của bàn
+thử sang máy khác. Chưa có tệp này thì máy chưa chọn được; có mà gắn vào vùng
+không có trong bản vẽ thì bị từ chối và nêu tên vùng.
+
+Ví dụ một tín hiệu (số ngưỡng ở đây là số minh hoạ, chưa duyệt):
+
+```json
+{"phien_ban": 1, "mat_tin_hieu_sau_s": 6, "may": [],
+ "tin_hieu": [{"id": "may-a/nhiet_dong_co", "ten": "Nhiệt độ động cơ", "don_vi": "°C",
+               "vung": "dong_co", "kieu": "so",
+               "nguong": {"nguon": "demo", "huong": "tren", "canh_bao": 80, "loi": 95}}]}
+```
+
+Tệp này nằm trong `ban-ve/may/`, nên cũng không lên git. Chưa có máy thật nào
+được cấu hình: máy đang mô phỏng vẫn là bàn thử.
 
 Công cụ chỉ mở trên `127.0.0.1` và chỉ nhận lệnh lưu từ chính trang của nó;
 trang web khác đang mở trong trình duyệt không đọc được bản vẽ hay sửa vùng.

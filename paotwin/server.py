@@ -284,7 +284,10 @@ def main(argv: list[str] | None = None) -> int:
     common.setup_logging("ban-sao")
     net = common.network()
     broker = net["broker"]
-    twin = Twin(common.signals_config(), ban_ve.model_in_use(), (broker["host"], broker["port"]),
+    model = ban_ve.model_in_use()
+    config, where = ban_ve.signals_for(model)
+    log.info("model %s, signals from %s", (model.get("ban_ve") or {}).get("id", "tham-khao"), where)
+    twin = Twin(config, model, (broker["host"], broker["port"]),
                 event_log=common.LOG_DIR / "su-kien.jsonl", minute_dir=common.LOG_DIR)
     twin.start()
     web = net["web"]
